@@ -1,0 +1,16 @@
+{
+  "rules": {
+    "nodes": {
+      ".read": true,
+      ".write": "auth != null"
+    },
+    "cmds": {
+      "$nodeId": {
+        ".read": true,
+        ".write": "auth != null"
+      }
+    },
+    ".read": false,
+    ".write": false
+  }
+}

@@ -140,14 +140,40 @@ export async function askGemini(backendUrl, prompt) {
   return data.result;
 }
 
-const FIREBASE_SECRET = "ClMqCWXviR5t0OnaVAuEkjhHCCXlY6hUpszQnCjh";
+// Web API key ของโปรเจกต์ solarlora-baa83 — ค่านี้เป็น public identifier ตามมาตรฐาน Firebase
+// (ผูกกับ Security Rules/Anonymous Auth ด้านล่าง) ไม่ใช่ secret แบบ database secret ที่เคยฝังไว้ก่อนหน้า
+const FIREBASE_API_KEY = "AIzaSyCqq4Iuq-z5Goc_RoT2UOTWr8N-ziM9U50";
+
+// ================= Firebase Anonymous Auth =================
+// ใช้แทน database secret เดิม: sign-in anonymous เพื่อผ่านเงื่อนไข "auth != null"
+// ใน Security Rules สำหรับเขียน /cmds/{nodeId} เท่านั้น — อ่านข้อมูล sensor ไม่ต้องใช้ token
+let cachedIdToken = null;
+let cachedIdTokenExpiry = 0;
+
+async function getAuthToken() {
+  if (cachedIdToken && Date.now() < cachedIdTokenExpiry) return cachedIdToken;
+
+  const res = await fetch(
+    `https://identitytoolkit.googleapis.com/v1/accounts:signUp?key=${FIREBASE_API_KEY}`,
+    {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ returnSecureToken: true }),
+    }
+  );
+  if (!res.ok) throw new Error(`Firebase anonymous auth ${res.status}`);
+  const data = await res.json();
+
+  cachedIdToken = data.idToken;
+  cachedIdTokenExpiry = Date.now() + (Number(data.expiresIn) - 60) * 1000; // กันชนหมดอายุ 60 วิ
+  return cachedIdToken;
+}
 
 // ================= Firebase RTDB =================
-// อ่านข้อมูล sensor ล่าสุดจาก Firebase RTDB /nodes/{nodeId}
-// ใช้ Database Secret (legacy token) ผ่าน ?auth= parameter
+// อ่านข้อมูล sensor ล่าสุดจาก Firebase RTDB /nodes/{nodeId} — read สาธารณะตาม Security Rules
 export async function fetchFromFirebase(dbUrl) {
   const base = dbUrl.replace(/\/$/, "");
-  const res = await fetch(`${base}/nodes.json?auth=${FIREBASE_SECRET}`);
+  const res = await fetch(`${base}/nodes.json`);
   if (!res.ok) throw new Error(`Firebase RTDB ${res.status}`);
   const data = await res.json();
 
@@ -229,7 +255,7 @@ const DEFAULT_CTRL = { machineOn: false, pump1: false, pump2: false, autoPhMode:
 
 export async function fetchNodeControl(dbUrl, nodeId) {
   const base = dbUrl.replace(/\/$/, "");
-  const res = await fetch(`${base}/cmds/${nodeId}.json?auth=${FIREBASE_SECRET}`);
+  const res = await fetch(`${base}/cmds/${nodeId}.json`);
   if (!res.ok) throw new Error(`Firebase cmds read ${res.status}`);
   const data = await res.json();
   return data ? { ...DEFAULT_CTRL, ...data } : { ...DEFAULT_CTRL };
@@ -237,7 +263,8 @@ export async function fetchNodeControl(dbUrl, nodeId) {
 
 export async function writeNodeControl(dbUrl, nodeId, patch) {
   const base = dbUrl.replace(/\/$/, "");
-  const res = await fetch(`${base}/cmds/${nodeId}.json?auth=${FIREBASE_SECRET}`, {
+  const token = await getAuthToken();
+  const res = await fetch(`${base}/cmds/${nodeId}.json?auth=${token}`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ ...patch, ts: { ".sv": "timestamp" } }),
