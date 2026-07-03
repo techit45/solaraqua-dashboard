@@ -926,12 +926,26 @@ function calcRisk(daily, node, enso) {
   const rain = daily?.[0]?.rain ?? 0;
   const sensors = node?.latestSensors || node?.sensors || {};
   const ph = Number(sensors.ph);
+  const ec = Number(sensors.ec ?? sensors.ec_ms_cm);
+  const doMgl = Number(sensors.do_mgl);
+  const ntu = Number(sensors.ntu);
+  const waterTemp = Number(sensors.water_temp);
+  const tds = Number(sensors.tds);
+  const waterLevel = Number(sensors.water_level_cm);
   let score = 0;
   const reasons = [];
   if (rain >= 60) { score += 2; reasons.push(t("risk.heavyRain")); }
   else if (rain >= 35) { score += 1; reasons.push(t("risk.possRain")); }
   if (Number.isFinite(ph) && ph < 5.5) { score += 2; reasons.push(t("risk.phLow")); }
   else if (Number.isFinite(ph) && ph > 7.5) { score += 2; reasons.push(t("risk.phHigh")); }
+  // เดิมเช็คแค่ฝนกับ pH เท่านั้น ทั้งที่ "ความเสี่ยงวันนี้" เป็น card หลักที่โชว์เด่นสุด
+  // ทำให้ EC/DO/NTU/อุณหภูมิน้ำ/TDS/ระดับน้ำผิดปกติแค่ไหนก็ไม่กระทบคะแนนเสี่ยงเลย
+  if (Number.isFinite(ec) && ec > 2)          { score += 2; reasons.push(t("risk.highEC")); }
+  if (Number.isFinite(doMgl) && doMgl < 5)    { score += 2; reasons.push(t("risk.lowDO")); }
+  if (Number.isFinite(waterLevel) && waterLevel < 5) { score += 2; reasons.push(t("risk.lowWater")); }
+  if (Number.isFinite(ntu) && ntu > 50)       { score += 1; reasons.push(t("risk.highTurbidity")); }
+  if (Number.isFinite(waterTemp) && (waterTemp < 25 || waterTemp > 32)) { score += 1; reasons.push(t("risk.waterTempOOR")); }
+  if (Number.isFinite(tds) && tds > 500)      { score += 1; reasons.push(t("risk.highTds")); }
   if (enso?.phase === "el-nino" || enso?.phase === "la-nina") { score += 1; reasons.push(ensoLabel(enso.phase)); }
   if (score >= 3) return { label: t("risk.high"),   sub: reasons.slice(0, 2).join(" · "), tone: "danger" };
   if (score >= 1) return { label: t("risk.medium"), sub: reasons.slice(0, 2).join(" · ") || t("risk.watch"), tone: "amber" };

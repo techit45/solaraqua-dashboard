@@ -67,6 +67,12 @@ const TRANSLATIONS = {
     'risk.possRain':  'มีโอกาสฝน',
     'risk.phLow':  'pH ต่ำ',
     'risk.phHigh': 'pH สูง',
+    'risk.highEC': 'EC สูง',
+    'risk.lowDO':  'DO ต่ำ',
+    'risk.highTurbidity': 'น้ำขุ่น',
+    'risk.waterTempOOR':  'อุณหภูมิน้ำผิดปกติ',
+    'risk.highTds': 'TDS สูง',
+    'risk.lowWater': 'ระดับน้ำต่ำ',
 
     // Field recommendation notes
     'note.heavyRain': 'เสี่ยงฝนหนัก ควรตรวจทางระบายน้ำและชะลอการใส่ปุ๋ย',
@@ -418,6 +424,12 @@ const TRANSLATIONS = {
     'risk.possRain':  'Possible rain',
     'risk.phLow':     'Low pH',
     'risk.phHigh':    'High pH',
+    'risk.highEC':    'High EC',
+    'risk.lowDO':     'Low DO',
+    'risk.highTurbidity': 'Turbid water',
+    'risk.waterTempOOR':  'Water temp abnormal',
+    'risk.highTds':   'High TDS',
+    'risk.lowWater':  'Low water level',
 
     // Notes
     'note.heavyRain': 'Heavy rain risk — check drainage and hold fertilizer',
