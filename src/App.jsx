@@ -388,7 +388,7 @@ function App() {
         nextLocation = await loadBrowserLocation();
         nextDevices = [nextLocation];
         nextOverview = {
-          ...demoOverview,
+          gateways: [],
           latestLocation: nextLocation,
           nodes: nextDevices,
           summary: {
@@ -416,7 +416,7 @@ function App() {
           nextLocation = await fetchLatestLocation(settings.backendUrl);
           nextDevices = await fetchDevices(settings.backendUrl);
           nextOverview = {
-            ...demoOverview,
+            gateways: [],
             latestLocation: nextLocation,
             nodes: nextDevices,
             alerts: [],
