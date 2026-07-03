@@ -206,8 +206,15 @@ function minutesAgo(iso) {
 }
 
 function getDeviceState(device) {
-  if (device?.statusLabel || device?.tone) {
-    return { label: device.statusLabel || device.status || t("st.unknown"), tone: device.tone || "neutral" };
+  // เดิม fetchFromFirebase() ฝัง statusLabel เป็นข้อความไทยตรงๆ มาด้วย ทำให้ status
+  // บน navbar ไม่เปลี่ยนตามภาษา — ดึง label จาก tone ผ่าน t() เสมอแทน
+  if (device?.tone) {
+    const label =
+      device.tone === "success" ? t("st.online")
+      : device.tone === "warning" ? t("st.stale")
+      : device.tone === "danger" ? t("st.offline")
+      : t("st.unknown");
+    return { label, tone: device.tone };
   }
   if (!device || device.default) return { label: t("st.waitGps"), tone: "warning" };
   const age = minutesAgo(device.updatedAt);
@@ -784,7 +791,7 @@ function LandingPage({ current, daily, deviceState, devices, farmOverview, hourl
                 {t("land.archLink")}
               </button>
             </div>
-            <div className="scene-mode-controls" aria-label="โหมดการแสดงโมเดลต้นข้าว">
+            <div className="scene-mode-controls" aria-label={t("land.sceneModeAria")}>
               {sceneModeIds.map((mode) => (
                 <button
                   className={`scene-mode-button ${sceneMode === mode.id ? "active" : ""}`}
@@ -1894,7 +1901,7 @@ function SensorReadoutGrid({ rows }) {
     return (
       <div className="sensor-readout empty">
         <Radio size={17} />
-        <span>ตู้ย่อยนี้ยังไม่มีค่า sensor คุณภาพน้ำ</span>
+        <span>{t("dev.noSensors")}</span>
       </div>
     );
   }
@@ -1921,7 +1928,7 @@ function SensorReadoutGrid({ rows }) {
 
 function SensorBadgeList({ sensors }) {
   const rows = normalizeSensorBadges(sensors);
-  if (!rows.length) return <span className="muted-text">ยังไม่กำหนด</span>;
+  if (!rows.length) return <span className="muted-text">{t("ui.noSensorConf")}</span>;
 
   return (
     <div className="sensor-badges">
@@ -2175,7 +2182,7 @@ function MapPanel({ location, nodes = [], onSelectNode, selectedNodeId }) {
     <Panel className="map-panel">
       <div className="panel-title-row">
         <div>
-          <span className="panel-label">ตำแหน่งและแผนที่</span>
+          <span className="panel-label">{t("mon.mapTitle")}</span>
           <h2>{getNodeName(location)}</h2>
         </div>
         <StatusChip tone={location.default ? "warning" : "success"} icon={MapPin}>
@@ -2190,7 +2197,7 @@ function MapPanel({ location, nodes = [], onSelectNode, selectedNodeId }) {
 function HourlyForecast({ compact = false, rows }) {
   return (
     <Panel className={compact ? "hourly-panel compact" : "hourly-panel"}>
-      <SectionHeading title="พยากรณ์รายชั่วโมง" />
+      <SectionHeading title={t("fc.hourly")} />
       <div className="hourly-grid">
         {rows.map((row) => {
           const info = getWeatherInfo(row.code);
@@ -2215,7 +2222,7 @@ function HourlyForecast({ compact = false, rows }) {
 function DailyForecast({ rows }) {
   return (
     <Panel className="daily-panel">
-      <SectionHeading title="พยากรณ์รายวัน" />
+      <SectionHeading title={t("fc.daily")} />
       <div className="daily-list">
         {rows.map((row) => {
           const info = getWeatherInfo(row.code);
@@ -2240,7 +2247,7 @@ function DailyForecast({ rows }) {
 function RecommendationPanel({ recommendations }) {
   return (
     <Panel className="recommend-panel">
-      <SectionHeading title="คำแนะนำจากระบบ" />
+      <SectionHeading title={t("fc.sysRec")} />
       <ul>
         {recommendations.map((item) => (
           <li key={item}>{item}</li>
@@ -2254,7 +2261,7 @@ function AiPanel({ advisor, advisorLoading, recommendations, runAdvisor }) {
   return (
     <Panel className="ai-panel">
       <div className="panel-title-row">
-        <SectionHeading title="คำแนะนำจาก AI" subtitle="สรุปความเสี่ยงและงานในนาจากข้อมูลล่าสุด" />
+        <SectionHeading title={t("fc.aiTitle")} subtitle={t("fc.aiSub")} />
         <Activity size={20} />
       </div>
       <ul className="recommend-list">
@@ -2265,16 +2272,16 @@ function AiPanel({ advisor, advisorLoading, recommendations, runAdvisor }) {
       <div className="ai-actions">
         <button className="secondary-action" disabled={advisorLoading} onClick={() => runAdvisor("advice")} type="button">
           <Sprout size={17} />
-          <span>คำแนะนำวันนี้</span>
+          <span>{t("fc.aiAdvice")}</span>
         </button>
         <button className="secondary-action" disabled={advisorLoading} onClick={() => runAdvisor("risk")} type="button">
           <ShieldCheck size={17} />
-          <span>ประเมินความเสี่ยง</span>
+          <span>{t("fc.aiRisk")}</span>
         </button>
       </div>
       {(advisor || advisorLoading) && (
         <div className={`ai-result ${advisorLoading ? "loading" : ""}`}>
-          {advisorLoading ? "กำลังวิเคราะห์ข้อมูลล่าสุด..." : advisor}
+          {advisorLoading ? t("fc.aiLoading") : advisor}
         </div>
       )}
     </Panel>
@@ -2347,7 +2354,7 @@ const NODE_DEFS = {
 function RssiBar({ rssi }) {
   if (rssi == null) return <span className="gw-sig-na">—</span>;
   const tone = rssi >= -70 ? "success" : rssi >= -85 ? "amber" : rssi >= -100 ? "warn" : "danger";
-  const label = rssi >= -70 ? "แรง" : rssi >= -85 ? "ดี" : rssi >= -100 ? "อ่อน" : "แย่";
+  const label = rssi >= -70 ? t("sig.strong") : rssi >= -85 ? t("sig.good") : rssi >= -100 ? t("sig.weak") : t("sig.poor");
   const bars = rssi >= -70 ? 4 : rssi >= -85 ? 3 : rssi >= -100 ? 2 : 1;
   return (
     <span className={`gw-rssi tone-${tone}`} title={`RSSI ${rssi} dBm`}>
@@ -2374,7 +2381,7 @@ function GatewayPanel({ devices, firebaseUrl }) {
             <span className="gw-title">LoRa Gateway</span>
             <span className={`gw-conn-badge ${isConnected ? "online" : "offline"}`}>
               <span className="gw-dot" />
-              {isConnected ? "Firebase RTDB" : "ไม่ได้เชื่อมต่อ"}
+              {isConnected ? "Firebase RTDB" : t("gw.notConnected")}
             </span>
           </div>
           <div className="gw-spec-row">
@@ -2388,7 +2395,7 @@ function GatewayPanel({ devices, firebaseUrl }) {
         <div className="gw-summary-chips">
           <div className="gw-chip"><strong>{displayNodes.length}</strong><span>Nodes</span></div>
           <div className="gw-chip success"><strong>{onlineCount}</strong><span>Online</span></div>
-          <div className="gw-chip warn"><strong>{devices.filter(d => d.tone === "warning").length}</strong><span>เก่า</span></div>
+          <div className="gw-chip warn"><strong>{devices.filter(d => d.tone === "warning").length}</strong><span>{t("gw.staleShort")}</span></div>
           <div className="gw-chip danger"><strong>{devices.filter(d => d.tone === "danger").length}</strong><span>Offline</span></div>
         </div>
       </div>
@@ -2410,7 +2417,7 @@ function GatewayPanel({ devices, firebaseUrl }) {
                   <strong>{node.nodeId}</strong>
                 </div>
                 <span className={`gw-node-badge tone-${tone}`}>
-                  {tone === "success" ? "Online" : tone === "danger" ? "Offline" : tone === "warning" ? "เก่า" : "—"}
+                  {tone === "success" ? t("st.online") : tone === "danger" ? t("st.offline") : tone === "warning" ? t("gw.staleShort") : "—"}
                 </span>
               </div>
               <div className="gw-node-type">
@@ -2444,11 +2451,11 @@ function GatewayPanel({ devices, firebaseUrl }) {
                   ) : (
                     <div className="gw-s gw-s-gps-wait">
                       <span><MapPin size={10} />GPS</span>
-                      <strong className="dim">รอ fix…</strong>
+                      <strong className="dim">{t("gps.waitFix")}</strong>
                     </div>
                   )
                 )}
-                {Object.keys(s).length === 0 && !def.hasGps && <div className="gw-s-empty">ไม่มีข้อมูล</div>}
+                {Object.keys(s).length === 0 && !def.hasGps && <div className="gw-s-empty">{t("ui.noData")}</div>}
               </div>
 
               {/* Signal + timestamp */}
@@ -2465,7 +2472,7 @@ function GatewayPanel({ devices, firebaseUrl }) {
       {/* LoRa command channel info */}
       <div className="gw-cmd-info">
         <Signal size={13} />
-        <span>คำสั่งส่งผ่าน LoRa → NODE1: START/STOP · PUMP1 · PUMP2 · ASET pH</span>
+        <span>{t("gw.cmdInfo")}</span>
       </div>
     </Panel>
   );
@@ -2511,7 +2518,7 @@ function EnsoPanel() {
   return (
     <Panel className="enso-panel">
       <div className="panel-title-row">
-        <SectionHeading title="ENSO — เอลนีโย / ลานีญา" subtitle={`ข้อมูล ONI ล่าสุด: ${enso.lastSeason}`} />
+        <SectionHeading title={t("mon.enso")} subtitle={`${t("enso.latestData")}: ${enso.lastSeason}`} />
         <TrendIcon size={20} />
       </div>
 

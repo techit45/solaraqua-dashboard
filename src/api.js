@@ -172,8 +172,6 @@ export async function fetchFromFirebase(dbUrl) {
       : ageMinutes <= 120 ? "warning"
       : "danger";
 
-    const statusLabel = tone === "success" ? "ออนไลน์" : tone === "warning" ? "ข้อมูลเก่า" : "ออฟไลน์";
-
     const sensorKeys = ["ph", "ntu", "ec_ms_cm", "do_mgl", "do_sat", "tds", "water_level_cm", "soil_moisture", "water_temp", "air_temp"];
     const sensors = {};
     sensorKeys.forEach((k) => { if (node[k] != null) sensors[k] = node[k]; });
@@ -197,7 +195,6 @@ export async function fetchFromFirebase(dbUrl) {
       lastSeen: updatedAt,
       tone,
       status: tone === "success" ? "online" : tone === "danger" ? "offline" : "stale",
-      statusLabel,
     };
   });
 
