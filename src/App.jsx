@@ -480,12 +480,17 @@ function App() {
     const sensorText = sensorRows.length
       ? `ข้อมูลเซนเซอร์: ${sensorRows.map((row) => `${row.label} ${formatSensorValue(row.key, row.value)}`).join(", ")}\n`
       : t("ai.noSensor");
+    // เดิม prompt ไม่มีข้อมูล ENSO เลยแม้หน้า UI จะโชว์ "Analyzed from: Forecast/ENSO/Sensor"
+    // (อ้างว่าใช้ ENSO วิเคราะห์ทั้งที่ไม่ได้ส่งไปให้ AI จริง) เพิ่มเข้า prompt ให้ตรงกับที่ UI เคลม
+    const enso = getEnsoData();
+    const ensoText = `ENSO: ${ensoLabel(enso.phase)} (ONI ${enso.oni >= 0 ? "+" : ""}${enso.oni.toFixed(1)}) — ${ensoOutlook(enso.phase)}\n`;
     const basePrompt =
       `คุณเป็นผู้เชี่ยวชาญด้านนาข้าวในประเทศไทย วิเคราะห์ข้อมูลจากตู้ย่อย ${location.name || location.deviceId} (${location.deviceId})\n` +
       `พิกัด ${formatNumber(location.lat, 6)}, ${formatNumber(location.lon, 6)}\n` +
       sensorText +
       `อุณหภูมิ ${formatNumber(current.temperature_2m)} C, ความชื้น ${formatInt(current.relative_humidity_2m)}%, ` +
-      `โอกาสฝนวันนี้ ${daily[0]?.rain ?? 0}%, ฝนสะสม ${formatNumber(daily[0]?.amount)} mm, ลม ${formatNumber(current.wind_speed_10m)} km/h\n`;
+      `โอกาสฝนวันนี้ ${daily[0]?.rain ?? 0}%, ฝนสะสม ${formatNumber(daily[0]?.amount)} mm, ลม ${formatNumber(current.wind_speed_10m)} km/h\n` +
+      ensoText;
 
     const prompt =
       mode === "risk"
@@ -721,7 +726,7 @@ function LandingPage({ current, daily, deviceState, devices, farmOverview, hourl
       image: "/images/landing-chapters/gateway.webp",
       title: t("land.gwTitle"),
       text:  t("land.gwText"),
-      stat: `${summary.gateways || 1} ${t("land.mGw")}`,
+      stat: `${summary.gateways ?? 1} ${t("land.mGw")}`,
     },
     {
       index: "02",
@@ -885,7 +890,7 @@ function LandingPage({ current, daily, deviceState, devices, farmOverview, hourl
           <p>{t("land.dashP")}</p>
         </div>
         <div className="overview-grid">
-          <MetricCard icon={Network} label={t("land.mNodes")} value={`${summary.nodes || devices.length}`} delta={`${summary.gateways || 1} ${t("land.mGw")}`} tone="blue" />
+          <MetricCard icon={Network} label={t("land.mNodes")} value={`${summary.nodes || devices.length}`} delta={`${summary.gateways ?? 1} ${t("land.mGw")}`} tone="blue" />
           <MetricCard icon={Wifi} label={t("land.mOnline")} value={`${summary.onlineNodes || 0}`} delta={t("land.mOnDelta")} tone="green" />
           <MetricCard icon={Bell} label={t("land.mAlerts")} value={`${summary.activeAlerts || 0}`} delta={t("land.mAlDelta")} tone={summary.activeAlerts ? "amber" : "green"} />
           <MetricCard icon={Thermometer} label={t("land.mWeather")} value={`${formatNumber(current.temperature_2m)} C`} delta={`${daily[0]?.rain ?? "--"}% rain`} tone="amber" />

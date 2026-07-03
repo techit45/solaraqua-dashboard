@@ -4,19 +4,23 @@ const OPEN_METEO_URL = "https://api.open-meteo.com/v1/forecast";
 //  ENSO (El Niño / La Niña) — ONI index
 //  ONI = Oceanic Niño Index, 3-month rolling avg Niño 3.4 SST anomaly (°C)
 //  El Niño >= +0.5 / La Niña <= -0.5 / Neutral in between
-//  อัปเดตเดือนละครั้งจาก: https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt
+//
+//  ค่าจริงจาก https://www.cpc.ncep.noaa.gov/data/indices/oni.ascii.txt (ดึงล่าสุด 2026-07-03)
+//  ค่าเดิมก่อนหน้าคลาดเคลื่อนจากของจริงมาก และมี 2 ฤดูท้าย (AMJ/MJJ 2026) ที่ NOAA ยังไม่เผยแพร่
+//  จริง (ถูกใส่เลขเดาไว้) ทำให้ระบบเคยฟันธงว่าเป็น "เอลนีโย" (+0.7) ทั้งที่ของจริงล่าสุด
+//  (MAM 2026 = +0.48) คือเป็นกลาง — ไม่มีระบบดึงสดอัตโนมัติ ต้องอัปเดต array นี้เองเป็นระยะ
 // ============================================================
 const ENSO_SERIES = [
-  { s: "ASO 2025", v: -0.8 },
-  { s: "SON 2025", v: -0.6 },
-  { s: "OND 2025", v: -0.3 },
-  { s: "NDJ 2026", v: -0.1 },
-  { s: "DJF 2026", v:  0.1 },
-  { s: "JFM 2026", v:  0.3 },
-  { s: "FMA 2026", v:  0.4 },
-  { s: "MAM 2026", v:  0.5 },
-  { s: "AMJ 2026", v:  0.6 },
-  { s: "MJJ 2026", v:  0.7 },
+  { s: "MJJ 2025", v: -0.04 },
+  { s: "JAS 2025", v: -0.28 },
+  { s: "ASO 2025", v: -0.40 },
+  { s: "SON 2025", v: -0.51 },
+  { s: "OND 2025", v: -0.55 },
+  { s: "NDJ 2025", v: -0.54 },
+  { s: "DJF 2026", v: -0.37 },
+  { s: "JFM 2026", v: -0.14 },
+  { s: "FMA 2026", v:  0.13 },
+  { s: "MAM 2026", v:  0.48 },
 ];
 
 // คืนเฉพาะข้อมูล/การจำแนกดิบ — ข้อความแสดงผล (label/impacts/outlook) อยู่ใน i18n.js
