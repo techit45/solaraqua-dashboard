@@ -46,7 +46,7 @@ import {
   Wrench,
   Info,
 } from "lucide-react";
-import { askGemini, createNode, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
+import { askGemini, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
 import { demoDevices, demoOverview, demoWeather, fallbackLocation } from "./mockData.js";
 import { t, setLang, getCurrentLang, ensoLabel, ensoImpacts, ensoOutlook } from "./i18n.js";
 
