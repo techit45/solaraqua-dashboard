@@ -79,6 +79,7 @@ const TRANSLATIONS = {
     'note.lowDO':     'ออกซิเจนละลายในน้ำต่ำ รากข้าวเสี่ยงขาดออกซิเจน ควรเพิ่มการไหลเวียนของน้ำ',
     'note.highTurbidity': 'น้ำขุ่นสูง อาจกระทบการสังเคราะห์แสง ควรตรวจตะกอนหรือสาหร่าย',
     'note.waterTempOOR': 'อุณหภูมิน้ำอยู่นอกช่วงเหมาะสม ควรเฝ้าระวังผลกระทบต่อรากและการออกรวง',
+    'note.highTds':   'ค่า TDS สูง น้ำมีของแข็งละลายมาก ควรตรวจแหล่งน้ำเข้า',
     'note.lowWater':  'ระดับน้ำต่ำ ควรตรวจรอบสูบน้ำหรือจุดรั่วไหลในแปลง',
     'note.noGps':     'ยังไม่มีพิกัด ESP32 จริง ระบบใช้ตำแหน่งสำรอง',
 
@@ -429,6 +430,7 @@ const TRANSLATIONS = {
     'note.lowDO':     'Low dissolved oxygen — rice roots at risk, increase water circulation',
     'note.highTurbidity': 'High turbidity — may affect photosynthesis, check for sediment or algae',
     'note.waterTempOOR': 'Water temperature out of optimal range — watch for effects on roots and heading',
+    'note.highTds':   'High TDS — water has heavy dissolved solids, check intake source',
     'note.lowWater':  'Low water level — check pump cycles or field leaks',
     'note.noGps':     'No real ESP32 GPS — using fallback location',
 

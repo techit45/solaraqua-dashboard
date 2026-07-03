@@ -292,6 +292,7 @@ function buildAdvisorText(location, weather) {
   const doMgl = Number(sensors.do_mgl);
   const ntu = Number(sensors.ntu);
   const waterTemp = Number(sensors.water_temp);
+  const tds = Number(sensors.tds);
 
   const notes = [];
   if (rain >= 60 || amount >= 8) {
@@ -312,6 +313,7 @@ function buildAdvisorText(location, weather) {
   if (Number.isFinite(ntu) && ntu > 50)               notes.push(t("note.highTurbidity"));
   // เดิมเช็คแค่ temp (อุณหภูมิอากาศจาก weather API) ไม่เคยเช็คอุณหภูมิน้ำจากเซนเซอร์จริงเลย
   if (Number.isFinite(waterTemp) && (waterTemp < 25 || waterTemp > 32)) notes.push(t("note.waterTempOOR"));
+  if (Number.isFinite(tds) && tds > 500)              notes.push(t("note.highTds"));
   if (Number.isFinite(waterLevel) && waterLevel < 5)  notes.push(t("note.lowWater"));
   if (location?.default) notes.push(t("note.noGps"));
 
