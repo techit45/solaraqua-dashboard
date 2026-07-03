@@ -495,7 +495,9 @@ function App() {
     setAdvisorLoading(true);
     setAdvisor("");
     try {
-      const result = await askGemini(settings.backendUrl, prompt);
+      // ใช้ URL คำนวณสดเสมอ ไม่ใช่ settings.backendUrl ที่ผู้ใช้แก้ไข/ค้างจาก localStorage ได้
+      // (แก้บั๊ก: ค่าเก่าที่เคย save ไว้ผิดๆ ทำให้ยิง Gemini ไปที่ host:3001 ของ production URL เอง)
+      const result = await askGemini(getDefaultBackendUrl(), prompt);
       setAdvisor(result);
     } catch (err) {
       setAdvisor(`${t("err.aiFail")}${err.message}`);
