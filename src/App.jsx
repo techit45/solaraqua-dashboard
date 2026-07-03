@@ -444,7 +444,6 @@ function App() {
       setWeather(nextWeather);
       setDevices(nextDevices);
       setFarmOverview(nextOverview || null);
-      setAdvisor("");
 
       if (nextLocation.default) {
         setError(t("err.noGpsHw"));
