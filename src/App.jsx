@@ -27,7 +27,6 @@ import {
   Sprout,
   Sun,
   Thermometer,
-  ToggleLeft,
   TrendingDown,
   TrendingUp,
   Wifi,
@@ -115,17 +114,12 @@ const defaultSettings = {
   firebaseUrl: "https://solarlora-baa83-default-rtdb.asia-southeast1.firebasedatabase.app/",
   updateInterval: 30,
   dataSource: "firebase",
-  alerts: {
-    rain: true,
-    stale: true,
-    battery: true,
-  },
 };
 
 function readSettings() {
   try {
     const saved = JSON.parse(localStorage.getItem("ricefarm-settings") || "null");
-    return saved ? { ...defaultSettings, ...saved, alerts: { ...defaultSettings.alerts, ...saved.alerts } } : defaultSettings;
+    return saved ? { ...defaultSettings, ...saved } : defaultSettings;
   } catch {
     return defaultSettings;
   }
@@ -1717,14 +1711,6 @@ function SettingsPage({ refreshData, settings, setSettings }) {
     setSaved(false);
   };
 
-  const updateAlert = (key) => {
-    setSettings((current) => ({
-      ...current,
-      alerts: { ...current.alerts, [key]: !current.alerts[key] },
-    }));
-    setSaved(false);
-  };
-
   const saveSettings = () => {
     setSaved(true);
     refreshData();
@@ -1819,15 +1805,6 @@ function SettingsPage({ refreshData, settings, setSettings }) {
                 </button>
               </div>
             </div>
-          </div>
-        </Panel>
-
-        <Panel>
-          <SectionHeading title={t("set.alertTitle")} subtitle={t("set.alertSubtitle")} />
-          <div className="switch-list">
-            <SwitchRow checked={settings.alerts.rain} label={t("set.alertRain")} onClick={() => updateAlert("rain")} />
-            <SwitchRow checked={settings.alerts.stale} label={t("set.alertStale")} onClick={() => updateAlert("stale")} />
-            <SwitchRow checked={settings.alerts.battery} label={t("set.alertBatt")} onClick={() => updateAlert("battery")} />
           </div>
         </Panel>
       </div>
@@ -2650,17 +2627,6 @@ function EnsoPanel() {
   );
 }
 
-function SwitchRow({ checked, label, onClick }) {
-  return (
-    <button className="switch-row" onClick={onClick} type="button">
-      <span>{label}</span>
-      <span className={`switch ${checked ? "on" : ""}`}>
-        <ToggleLeft size={18} />
-      </span>
-    </button>
-  );
-}
-
 // ─── Guide Page ──────────────────────────────────────────────────────────────
 
 function GuideSection({ icon: Icon, title, children }) {
@@ -2810,7 +2776,6 @@ function GuidePage({ navigate }) {
         <div className="guide-steps">
           <GuideStep num="1" title={t("guide.setStep1t")} desc={t("guide.setStep1d")} />
           <GuideStep num="2" title={t("guide.setStep2t")} desc={t("guide.setStep2d")} />
-          <GuideStep num="3" title={t("guide.setStep3t")} desc={t("guide.setStep3d")} />
         </div>
       </GuideSection>
 

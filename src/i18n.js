@@ -233,12 +233,6 @@ const TRANSLATIONS = {
     'set.srcBrowser':    'GPS เบราว์เซอร์',
     'set.srcGps':        'GPS เบราว์เซอร์',
     'set.srcDemo':       'ข้อมูลตัวอย่าง',
-    'set.alertTitle':    'การแจ้งเตือน',
-    'set.alertSubtitle': 'เปิดปิดสัญญาณเตือนสำหรับงานภาคสนาม',
-    'set.alertSub':      'เปิดปิดสัญญาณเตือนสำหรับงานภาคสนาม',
-    'set.alertRain':     'แจ้งเตือนเมื่อฝนหนัก',
-    'set.alertStale':    'แจ้งเตือนอุปกรณ์ไม่อัปเดต',
-    'set.alertBatt':     'แจ้งเตือนแบตเตอรี่ต่ำ',
     'set.saved':         'บันทึกแล้ว',
     'set.saveBtn':       'บันทึกการตั้งค่า',
 
@@ -307,7 +301,7 @@ const TRANSLATIONS = {
     'guide.s1intro':    'SolarAqua คือระบบติดตามคุณภาพน้ำและสภาพอากาศสำหรับนาข้าว ข้อมูลมาจากตู้ย่อย LoRa ในแปลงจริง ส่งผ่าน Gateway เข้า Firebase แล้วแสดงบนหน้าเว็บนี้แบบ Real-time มีทั้งหมด 3 หน้าหลัก:',
     'guide.navMonDesc': 'ดูค่าเซนเซอร์จริง พยากรณ์อากาศ และคำแนะนำจาก AI',
     'guide.navDevDesc': 'ดูรายการตู้ย่อย LoRa ทั้งหมดพร้อมสถานะ',
-    'guide.navSetDesc': 'ตั้งค่าแหล่งข้อมูล รอบอัปเดต และการแจ้งเตือน',
+    'guide.navSetDesc': 'ตั้งค่าแหล่งข้อมูลและรอบอัปเดต',
     'guide.goBtn':      'ไปที่หน้านี้',
 
     'guide.s2title':    'หน้า Monitor (แดชบอร์ด)',
@@ -372,8 +366,6 @@ const TRANSLATIONS = {
     'guide.setStep1d':  'เลือก "Firebase" เพื่อดึงข้อมูลจริงจาก LoRa Gateway หรือ "ข้อมูลตัวอย่าง" เพื่อทดสอบหน้าเว็บโดยไม่ต้องมีอุปกรณ์',
     'guide.setStep2t':  'ตั้งรอบอัปเดต',
     'guide.setStep2d':  'กำหนดให้หน้าเว็บดึงข้อมูลใหม่ทุก 10, 30 วินาที หรือ 1–5 นาที ขึ้นอยู่กับความต้องการ',
-    'guide.setStep3t':  'เปิด/ปิดการแจ้งเตือน',
-    'guide.setStep3d':  'เลือกว่าจะให้ระบบแจ้งเตือนเมื่อฝนหนัก อุปกรณ์ไม่อัปเดต หรือแบตเตอรี่ต่ำ',
 
     'guide.s7title':    'เปลี่ยนภาษา',
     'guide.s7intro':    'กดปุ่ม EN / TH ที่แถบด้านบนขวา เพื่อสลับภาษาของทั้งเว็บไซต์ระหว่างภาษาไทยและภาษาอังกฤษ ระบบจะจำการตั้งค่านี้ไว้ในเบราว์เซอร์',
@@ -634,12 +626,6 @@ const TRANSLATIONS = {
     'set.srcBrowser':    'Browser GPS',
     'set.srcGps':        'Browser GPS',
     'set.srcDemo':       'Demo data',
-    'set.alertTitle':    'Alerts',
-    'set.alertSubtitle': 'Toggle alerts for field operations',
-    'set.alertSub':      'Toggle alerts for field operations',
-    'set.alertRain':     'Alert on heavy rain',
-    'set.alertStale':    'Alert on stale device data',
-    'set.alertBatt':     'Alert on low battery',
     'set.saved':         'Saved',
     'set.saveBtn':       'Save Settings',
 
@@ -708,7 +694,7 @@ const TRANSLATIONS = {
     'guide.s1intro':    'SolarAqua monitors water quality and weather for rice fields. Data comes from LoRa nodes in the field, sent via Gateway to Firebase, then displayed here in real-time. There are 3 main pages:',
     'guide.navMonDesc': 'View live sensor values, weather forecasts, and AI advice',
     'guide.navDevDesc': 'See all LoRa nodes and their current status',
-    'guide.navSetDesc': 'Configure data source, refresh interval, and alerts',
+    'guide.navSetDesc': 'Configure data source and refresh interval',
     'guide.goBtn':      'Go there',
 
     'guide.s2title':    'Monitor Page (Dashboard)',
@@ -773,8 +759,6 @@ const TRANSLATIONS = {
     'guide.setStep1d':  'Select "Firebase" for live data from the LoRa Gateway, or "Demo data" to explore the UI without hardware.',
     'guide.setStep2t':  'Set Refresh Interval',
     'guide.setStep2d':  'Control how often the page fetches new data: every 10 s, 30 s, 1 min, or 5 min.',
-    'guide.setStep3t':  'Toggle Alerts',
-    'guide.setStep3d':  'Choose which alerts to enable: heavy rain, stale device data, or low battery.',
 
     'guide.s7title':    'Language Switching',
     'guide.s7intro':    'Press the EN / TH button in the top-right bar to switch the entire website between Thai and English. Your preference is saved in the browser.',
