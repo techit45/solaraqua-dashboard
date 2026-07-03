@@ -9,6 +9,7 @@
     "preview": "vite preview --host 0.0.0.0"
   },
   "dependencies": {
+    "@google/genai": "^2.10.0",
     "@vitejs/plugin-react": "^5.1.1",
     "leaflet": "^1.9.4",
     "lucide-react": "^0.562.0",

@@ -104,7 +104,9 @@ export async function fetchWeather(lat, lon) {
 }
 
 export async function askGemini(backendUrl, prompt) {
-  if (!backendUrl) throw new Error("ฟีเจอร์ AI ใช้ได้เฉพาะบนเครือข่ายท้องถิ่น (localhost/192.168.x.x) เท่านั้น");
+  // backendUrl ว่างตอน production -> fetch("/api/gemini") เป็น relative path ชี้ไปที่
+  // Vercel serverless function (weather/api/gemini.js) โดยอัตโนมัติ ไม่ต้องรัน backend เอง
+  // ส่วน localhost/LAN ยังใช้ backend/server.js ตัวเดิมตาม getDefaultBackendUrl()
   const res = await fetch(`${backendUrl}/api/gemini`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
