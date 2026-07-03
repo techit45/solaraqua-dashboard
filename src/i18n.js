@@ -76,6 +76,8 @@ const TRANSLATIONS = {
     'note.hotTemp':   'อุณหภูมิสูง ควรหลีกเลี่ยงการพ่นสารช่วงแดดจัด',
     'note.phOOR':     'ค่า pH อยู่นอกช่วงเหมาะสม ควรตรวจซ้ำและเตรียมแผนปรับสภาพน้ำ',
     'note.highEC':    'ค่า EC สูง ควรระวังความเค็มสะสมและตรวจแหล่งน้ำเข้า',
+    'note.lowDO':     'ออกซิเจนละลายในน้ำต่ำ รากข้าวเสี่ยงขาดออกซิเจน ควรเพิ่มการไหลเวียนของน้ำ',
+    'note.highTurbidity': 'น้ำขุ่นสูง อาจกระทบการสังเคราะห์แสง ควรตรวจตะกอนหรือสาหร่าย',
     'note.lowWater':  'ระดับน้ำต่ำ ควรตรวจรอบสูบน้ำหรือจุดรั่วไหลในแปลง',
     'note.noGps':     'ยังไม่มีพิกัด ESP32 จริง ระบบใช้ตำแหน่งสำรอง',
 
@@ -423,6 +425,8 @@ const TRANSLATIONS = {
     'note.hotTemp':   'High temperature — avoid spraying in direct sunlight',
     'note.phOOR':     'pH out of optimal range — re-test and prepare water treatment',
     'note.highEC':    'High EC — watch for salt buildup and check intake water',
+    'note.lowDO':     'Low dissolved oxygen — rice roots at risk, increase water circulation',
+    'note.highTurbidity': 'High turbidity — may affect photosynthesis, check for sediment or algae',
     'note.lowWater':  'Low water level — check pump cycles or field leaks',
     'note.noGps':     'No real ESP32 GPS — using fallback location',
 

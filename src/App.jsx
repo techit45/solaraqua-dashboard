@@ -289,6 +289,8 @@ function buildAdvisorText(location, weather) {
   const ph = Number(sensors.ph);
   const ec = Number(sensors.ec ?? sensors.ec_ms_cm);
   const waterLevel = Number(sensors.water_level_cm);
+  const doMgl = Number(sensors.do_mgl);
+  const ntu = Number(sensors.ntu);
 
   const notes = [];
   if (rain >= 60 || amount >= 8) {
@@ -303,6 +305,10 @@ function buildAdvisorText(location, weather) {
   if (temp >= 34)      notes.push(t("note.hotTemp"));
   if (Number.isFinite(ph) && (ph < 5.5 || ph > 7.5)) notes.push(t("note.phOOR"));
   if (Number.isFinite(ec) && ec > 2)                  notes.push(t("note.highEC"));
+  // เดิมไม่เช็ค DO/NTU เลยทั้งที่การ์ดสีบนหน้า Monitor (getSensorStatus) เตือนได้ —
+  // checklist นี้เลยเงียบแม้ DO ต่ำวิกฤตหรือน้ำขุ่นมาก ใช้ threshold เดียวกับการ์ดสี
+  if (Number.isFinite(doMgl) && doMgl < 5)            notes.push(t("note.lowDO"));
+  if (Number.isFinite(ntu) && ntu > 50)               notes.push(t("note.highTurbidity"));
   if (Number.isFinite(waterLevel) && waterLevel < 5)  notes.push(t("note.lowWater"));
   if (location?.default) notes.push(t("note.noGps"));
 
