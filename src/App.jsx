@@ -291,6 +291,7 @@ function buildAdvisorText(location, weather) {
   const waterLevel = Number(sensors.water_level_cm);
   const doMgl = Number(sensors.do_mgl);
   const ntu = Number(sensors.ntu);
+  const waterTemp = Number(sensors.water_temp);
 
   const notes = [];
   if (rain >= 60 || amount >= 8) {
@@ -309,6 +310,8 @@ function buildAdvisorText(location, weather) {
   // checklist นี้เลยเงียบแม้ DO ต่ำวิกฤตหรือน้ำขุ่นมาก ใช้ threshold เดียวกับการ์ดสี
   if (Number.isFinite(doMgl) && doMgl < 5)            notes.push(t("note.lowDO"));
   if (Number.isFinite(ntu) && ntu > 50)               notes.push(t("note.highTurbidity"));
+  // เดิมเช็คแค่ temp (อุณหภูมิอากาศจาก weather API) ไม่เคยเช็คอุณหภูมิน้ำจากเซนเซอร์จริงเลย
+  if (Number.isFinite(waterTemp) && (waterTemp < 25 || waterTemp > 32)) notes.push(t("note.waterTempOOR"));
   if (Number.isFinite(waterLevel) && waterLevel < 5)  notes.push(t("note.lowWater"));
   if (location?.default) notes.push(t("note.noGps"));
 
