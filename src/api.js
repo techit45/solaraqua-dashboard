@@ -19,50 +19,25 @@ const ENSO_SERIES = [
   { s: "MJJ 2026", v:  0.7 },
 ];
 
+// คืนเฉพาะข้อมูล/การจำแนกดิบ — ข้อความแสดงผล (label/impacts/outlook) อยู่ใน i18n.js
+// เพื่อให้เปลี่ยนตามภาษาที่เลือกได้ (ดู ensoLabel/ensoImpacts/ensoOutlook ใน i18n.js)
 export function getEnsoData() {
   const latest = ENSO_SERIES[ENSO_SERIES.length - 1];
   const prev   = ENSO_SERIES[ENSO_SERIES.length - 4] || ENSO_SERIES[0];
   const oni    = latest.v;
 
-  let phase, phaseLabel, phaseTone;
-  if      (oni >=  0.5) { phase = "el-nino";  phaseLabel = "เอลนีโย";  phaseTone = "amber"; }
-  else if (oni <= -0.5) { phase = "la-nina";  phaseLabel = "ลานีญา";   phaseTone = "blue";  }
-  else                  { phase = "neutral";  phaseLabel = "เป็นกลาง"; phaseTone = "green"; }
+  let phase, phaseTone;
+  if      (oni >=  0.5) { phase = "el-nino";  phaseTone = "amber"; }
+  else if (oni <= -0.5) { phase = "la-nina";  phaseTone = "blue";  }
+  else                  { phase = "neutral";  phaseTone = "green"; }
 
   const trend = oni > prev.v + 0.15 ? "warming" : oni < prev.v - 0.15 ? "cooling" : "stable";
-
-  const IMPACT = {
-    "el-nino": [
-      "ฝนน้อยกว่าปกติ เสี่ยงภัยแล้งช่วงปลูก",
-      "อุณหภูมิสูง ระเหยน้ำเร็ว ควรเพิ่มรอบสูบน้ำ",
-      "ชะลอปลูกข้าวนาปีหาก ONI สูงต่อเนื่อง",
-    ],
-    "la-nina": [
-      "ฝนมากกว่าปกติ เสี่ยงน้ำท่วมช่วง ส.ค.–ต.ค.",
-      "ระวังโรคเชื้อราและแมลงศัตรูพืช",
-      "เตรียมระบบระบายน้ำและคันนาให้แข็งแรง",
-    ],
-    neutral: [
-      "สภาพอากาศตามฤดูกาลปกติ",
-      "วางแผนปลูกตามปฏิทินข้าวมาตรฐาน",
-      "ติดตาม ONI ต่อเนื่องทุกเดือน",
-    ],
-  };
-
-  const OUTLOOK = {
-    "el-nino": "คาดว่า ONI จะทรงตัวหรือสูงขึ้นใน 3 เดือนข้างหน้า แนะนำเฝ้าระวังภัยแล้ง",
-    "la-nina": "คาดว่า ONI จะค่อย ๆ เพิ่มขึ้นสู่เป็นกลางใน 3 เดือนข้างหน้า",
-    neutral:   "ONI อยู่ในช่วงเปลี่ยนผ่าน ติดตามใกล้ชิด",
-  };
 
   return {
     oni,
     phase,
-    phaseLabel,
     phaseTone,
     trend,
-    impacts: IMPACT[phase],
-    outlook: OUTLOOK[phase],
     series: ENSO_SERIES,
     lastSeason: latest.s,
   };

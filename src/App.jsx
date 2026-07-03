@@ -49,7 +49,7 @@ import {
 } from "lucide-react";
 import { askGemini, createNode, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
 import { demoDevices, demoOverview, demoWeather, fallbackLocation } from "./mockData.js";
-import { t, setLang, getCurrentLang } from "./i18n.js";
+import { t, setLang, getCurrentLang, ensoLabel, ensoImpacts, ensoOutlook } from "./i18n.js";
 
 const LangContext = createContext({ lang: "th", toggleLang: () => {} });
 function useLang() { return useContext(LangContext); }
@@ -913,7 +913,7 @@ function calcRisk(daily, node, enso) {
   else if (rain >= 35) { score += 1; reasons.push(t("risk.possRain")); }
   if (Number.isFinite(ph) && ph < 5.5) { score += 2; reasons.push(t("risk.phLow")); }
   else if (Number.isFinite(ph) && ph > 7.5) { score += 2; reasons.push(t("risk.phHigh")); }
-  if (enso?.phase === "el-nino" || enso?.phase === "la-nina") { score += 1; reasons.push(enso.phaseLabel); }
+  if (enso?.phase === "el-nino" || enso?.phase === "la-nina") { score += 1; reasons.push(ensoLabel(enso.phase)); }
   if (score >= 3) return { label: t("risk.high"),   sub: reasons.slice(0, 2).join(" · "), tone: "danger" };
   if (score >= 1) return { label: t("risk.medium"), sub: reasons.slice(0, 2).join(" · ") || t("risk.watch"), tone: "amber" };
   return { label: t("risk.low"), sub: t("risk.normal"), tone: "success" };
@@ -1169,7 +1169,7 @@ function CollapsibleEnso() {
     <div className="collapsible-enso">
       <button className="collapsible-enso-header" onClick={() => setOpen((o) => !o)} type="button">
         <span>{t("mon.enso")}</span>
-        <span className={`enso-mini-badge ${enso.phaseTone}`}>{enso.phaseLabel} {enso.oni >= 0 ? "+" : ""}{enso.oni.toFixed(1)}</span>
+        <span className={`enso-mini-badge ${enso.phaseTone}`}>{ensoLabel(enso.phase)} {enso.oni >= 0 ? "+" : ""}{enso.oni.toFixed(1)}</span>
         <ChevronDown className={`dropdown-chevron ${open ? "open" : ""}`} size={15} />
       </button>
       {open && <div className="collapsible-enso-body"><EnsoPanel /></div>}
@@ -2610,17 +2610,17 @@ function EnsoPanel() {
       {/* Badge + impacts */}
       <div className="enso-summary-row">
         <div className={`enso-phase-badge ${enso.phaseTone}`}>
-          <strong>{enso.phaseLabel}</strong>
+          <strong>{ensoLabel(enso.phase)}</strong>
           <span>ONI {enso.oni >= 0 ? "+" : ""}{enso.oni.toFixed(1)}</span>
         </div>
         <ul className="enso-impacts">
-          {enso.impacts.map((item) => (
+          {ensoImpacts(enso.phase).map((item) => (
             <li key={item}>{item}</li>
           ))}
         </ul>
       </div>
 
-      <p className="enso-outlook">{enso.outlook}</p>
+      <p className="enso-outlook">{ensoOutlook(enso.phase)}</p>
     </Panel>
   );
 }

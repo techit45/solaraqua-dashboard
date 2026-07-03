@@ -135,6 +135,23 @@ const TRANSLATIONS = {
     'mon.pressure':    'ความกดอากาศ',
     'mon.enso':        'ENSO — เอลนีโย / ลานีญา',
     'mon.mapTitle':    'ตำแหน่งและแผนที่',
+
+    // ENSO phase content — เดิมฝังในโค้ด api.js ไม่ผ่าน i18n เลย
+    'enso.elNino.label':   'เอลนีโย',
+    'enso.elNino.impact1': 'ฝนน้อยกว่าปกติ เสี่ยงภัยแล้งช่วงปลูก',
+    'enso.elNino.impact2': 'อุณหภูมิสูง ระเหยน้ำเร็ว ควรเพิ่มรอบสูบน้ำ',
+    'enso.elNino.impact3': 'ชะลอปลูกข้าวนาปีหาก ONI สูงต่อเนื่อง',
+    'enso.elNino.outlook': 'คาดว่า ONI จะทรงตัวหรือสูงขึ้นใน 3 เดือนข้างหน้า แนะนำเฝ้าระวังภัยแล้ง',
+    'enso.laNina.label':   'ลานีญา',
+    'enso.laNina.impact1': 'ฝนมากกว่าปกติ เสี่ยงน้ำท่วมช่วง ส.ค.–ต.ค.',
+    'enso.laNina.impact2': 'ระวังโรคเชื้อราและแมลงศัตรูพืช',
+    'enso.laNina.impact3': 'เตรียมระบบระบายน้ำและคันนาให้แข็งแรง',
+    'enso.laNina.outlook': 'คาดว่า ONI จะค่อย ๆ เพิ่มขึ้นสู่เป็นกลางใน 3 เดือนข้างหน้า',
+    'enso.neutral.label':   'เป็นกลาง',
+    'enso.neutral.impact1': 'สภาพอากาศตามฤดูกาลปกติ',
+    'enso.neutral.impact2': 'วางแผนปลูกตามปฏิทินข้าวมาตรฐาน',
+    'enso.neutral.impact3': 'ติดตาม ONI ต่อเนื่องทุกเดือน',
+    'enso.neutral.outlook': 'ONI อยู่ในช่วงเปลี่ยนผ่าน ติดตามใกล้ชิด',
     'mon.aiWarnRx':    'เสี่ยง|ควร|ระวัง|เฝ้า|ต่ำ|สูง|ผิด|น้อย|หนัก',
 
     // Devices page
@@ -509,6 +526,23 @@ const TRANSLATIONS = {
     'mon.pressure':    'Pressure',
     'mon.enso':        'ENSO — El Niño / La Niña',
     'mon.mapTitle':    'Location & Map',
+
+    // ENSO phase content
+    'enso.elNino.label':   'El Niño',
+    'enso.elNino.impact1': 'Below-normal rainfall, drought risk during planting season',
+    'enso.elNino.impact2': 'Higher temperatures increase water evaporation — increase irrigation frequency',
+    'enso.elNino.impact3': 'Consider delaying main-season rice planting if ONI stays elevated',
+    'enso.elNino.outlook': 'ONI is expected to stay elevated or rise further over the next 3 months — monitor drought risk',
+    'enso.laNina.label':   'La Niña',
+    'enso.laNina.impact1': 'Above-normal rainfall, flood risk around Aug–Oct',
+    'enso.laNina.impact2': 'Watch for fungal disease and pest outbreaks',
+    'enso.laNina.impact3': 'Reinforce drainage systems and field bunds',
+    'enso.laNina.outlook': 'ONI is expected to gradually rise toward neutral over the next 3 months',
+    'enso.neutral.label':   'Neutral',
+    'enso.neutral.impact1': 'Normal seasonal weather conditions',
+    'enso.neutral.impact2': 'Follow the standard rice farming calendar',
+    'enso.neutral.impact3': 'Continue monitoring ONI monthly',
+    'enso.neutral.outlook': 'ONI is in a transitional phase — keep monitoring closely',
     'mon.aiWarnRx':    'เสี่ยง|ควร|ระวัง|เฝ้า|ต่ำ|สูง|ผิด|น้อย|หนัก',
 
     // Devices
@@ -762,4 +796,20 @@ export function setLang(lang) {
 export function t(key) {
   const tr = TRANSLATIONS[_lang] || TRANSLATIONS.th;
   return tr[key] ?? TRANSLATIONS.th[key] ?? key;
+}
+
+// ENSO phase display text — เดิม getEnsoData() ใน api.js ฝัง text ไทยตรงๆ ไม่ผ่าน i18n
+const ENSO_PHASE_KEY = { 'el-nino': 'elNino', 'la-nina': 'laNina', neutral: 'neutral' };
+
+export function ensoLabel(phase) {
+  return t(`enso.${ENSO_PHASE_KEY[phase] || 'neutral'}.label`);
+}
+
+export function ensoImpacts(phase) {
+  const k = ENSO_PHASE_KEY[phase] || 'neutral';
+  return [t(`enso.${k}.impact1`), t(`enso.${k}.impact2`), t(`enso.${k}.impact3`)];
+}
+
+export function ensoOutlook(phase) {
+  return t(`enso.${ENSO_PHASE_KEY[phase] || 'neutral'}.outlook`);
 }
