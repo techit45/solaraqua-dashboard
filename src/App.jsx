@@ -63,6 +63,7 @@ function LangProvider({ children }) {
   return <LangContext.Provider value={{ lang, toggleLang }}>{children}</LangContext.Provider>;
 }
 import ThreeFarmScene from "./ThreeFarmScene.jsx";
+import { marked } from "marked";
 
 const pages = [
   { id: "landing",  label: "Overview",  icon: Home },
@@ -985,7 +986,7 @@ function MonitorAiPanel({ advisor, advisorLoading, nodeName, recommendations, ru
       </div>
       {(advisor || advisorLoading) && (
         <div className={`monitor-ai-result ${advisorLoading ? "loading" : ""}`} ref={resultRef}>
-          {advisorLoading ? t("mon.aiLoading") : advisor}
+          {advisorLoading ? t("mon.aiLoading") : <AiMarkdown text={advisor} />}
         </div>
       )}
     </Panel>
@@ -1868,6 +1869,17 @@ function Panel({ children, className = "" }) {
   return <section className={`panel ${className}`}>{children}</section>;
 }
 
+// เดิม advisor text (จาก AI) โชว์เป็น raw markdown (**bold**, ### ฯลฯ) ตรงๆ ไม่สวย
+// escape HTML ก่อนแล้วค่อยผ่าน marked — กัน HTML แปลกปลอมจาก AI response โผล่มาเป็น element จริง
+function escapeHtml(s) {
+  return s.replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+
+function AiMarkdown({ text }) {
+  const html = marked.parse(escapeHtml(text), { breaks: true });
+  return <div className="ai-markdown" dangerouslySetInnerHTML={{ __html: html }} />;
+}
+
 function MetricCard({ delta, icon: Icon, label, tone = "neutral", value }) {
   return (
     <article className={`metric-card ${tone}`}>
@@ -2283,7 +2295,7 @@ function AiPanel({ advisor, advisorLoading, recommendations, runAdvisor }) {
       </div>
       {(advisor || advisorLoading) && (
         <div className={`ai-result ${advisorLoading ? "loading" : ""}`}>
-          {advisorLoading ? t("fc.aiLoading") : advisor}
+          {advisorLoading ? t("fc.aiLoading") : <AiMarkdown text={advisor} />}
         </div>
       )}
     </Panel>
