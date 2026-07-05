@@ -2505,41 +2505,6 @@ button:disabled {
   background: var(--green);
 }
 
-.switch-list {
-  display: grid;
-  gap: 10px;
-  margin-top: 18px;
-}
-
-.switch-row {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-  min-height: 48px;
-  padding: 0 14px;
-  color: var(--text);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: white;
-  font-weight: 800;
-}
-
-.switch {
-  display: grid;
-  place-items: center;
-  width: 46px;
-  height: 26px;
-  color: #7c8b7b;
-  border-radius: 99px;
-  background: #e7ede6;
-}
-
-.switch.on {
-  color: white;
-  background: var(--green);
-}
-
 .save-row {
   display: flex;
   justify-content: flex-end;
@@ -4464,6 +4429,41 @@ button:disabled {
 .sensor-hero-status.amber   { background: #FFF8E6; color: #b36200; }
 .sensor-hero-status.danger  { background: #FEF0F0; color: #c62828; }
 .sensor-hero-status.neutral { background: #F5F5F5; color: #999; }
+
+.sensor-hero-info-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 22px;
+  height: 22px;
+  display: grid;
+  place-items: center;
+  border-radius: 999px;
+  border: none;
+  background: rgba(0,0,0,0.05);
+  color: #999;
+  cursor: pointer;
+  padding: 0;
+}
+.sensor-hero-info-btn:hover { background: rgba(0,0,0,0.09); color: #666; }
+.sensor-hero-explain {
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px dashed rgba(0,0,0,0.1);
+}
+.sensor-hero-explain p {
+  margin: 0 0 4px;
+  font-size: 0.78rem;
+  line-height: 1.4;
+  color: #555;
+  font-weight: 400;
+}
+.sensor-hero-explain-range {
+  display: block;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #888;
+}
 
 .sensor-hero-empty {
   display: flex;

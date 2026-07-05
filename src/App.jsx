@@ -92,6 +92,23 @@ function sensorCatalog() {
   };
 }
 
+// คำอธิบาย+ช่วงปกติของแต่ละเซนเซอร์ ให้เกษตรกรแตะดูตรงการ์ดได้เลย ไม่ต้องไปหน้า Guide
+// ใช้ข้อความชุดเดียวกับหน้า Guide (guide.*Mean/guide.*Range) กันเนื้อหาสองชุดไม่ตรงกัน
+function sensorMeaning(key) {
+  const map = {
+    ph:             { meaning: t("guide.phMean"), range: t("guide.phRange") },
+    ec:             { meaning: t("guide.ecMean"), range: t("guide.ecRange") },
+    ec_ms_cm:       { meaning: t("guide.ecMean"), range: t("guide.ecRange") },
+    ntu:            { meaning: t("guide.ntuMean"), range: t("guide.ntuRange") },
+    do_mgl:         { meaning: t("guide.doMean"), range: t("guide.doRange") },
+    do_sat:         { meaning: t("guide.doMean"), range: t("guide.doRange") },
+    tds:            { meaning: t("guide.tdsMean"), range: t("guide.tdsRange") },
+    water_level_cm: { meaning: t("guide.wlMean"), range: t("guide.wlRange") },
+    water_temp:     { meaning: t("guide.wtMean"), range: t("guide.wtRange") },
+  };
+  return map[key] || null;
+}
+
 function getSensorOptions() {
   return [
     { id: "gps",            label: "GPS" },
@@ -1278,6 +1295,8 @@ function getSensorStatus(key, rawValue) {
 function SensorHeroRow({ node }) {
   const { lang } = useLang(); // eslint-disable-line no-unused-vars
   const rows = getSensorRows(node);
+  // เกษตรกรแตะการ์ดเพื่อดูว่าค่านี้คืออะไร/ช่วงปกติเท่าไหร่ ไม่ต้องไปหน้า Guide แยก
+  const [expandedKey, setExpandedKey] = useState(null);
 
   if (!rows.length) {
     return (
@@ -1299,13 +1318,31 @@ function SensorHeroRow({ node }) {
           : (row.key === "ph" || row.key === "do_mgl" || row.key === "do_sat")
             ? v.toFixed(2)
             : v.toFixed(1);
+        const info = sensorMeaning(row.key);
+        const isOpen = expandedKey === row.key;
         return (
           <article className={`sensor-hero-card ${status.tone}`} key={row.key}>
+            {info && (
+              <button
+                className="sensor-hero-info-btn"
+                onClick={() => setExpandedKey(isOpen ? null : row.key)}
+                aria-label={t("mon.whatIsThis")}
+                type="button"
+              >
+                <Info size={13} />
+              </button>
+            )}
             <span className="sensor-hero-icon"><Icon size={18} /></span>
             <span className="sensor-hero-label">{row.label}</span>
             <strong className="sensor-hero-value">{displayVal}</strong>
             {row.unit && <span className="sensor-hero-unit">{row.unit}</span>}
             <span className={`sensor-hero-status ${status.tone}`}>{status.label}</span>
+            {info && isOpen && (
+              <div className="sensor-hero-explain">
+                <p>{info.meaning}</p>
+                <span className="sensor-hero-explain-range">{info.range}</span>
+              </div>
+            )}
           </article>
         );
       })}
