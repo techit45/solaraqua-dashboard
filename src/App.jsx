@@ -477,7 +477,18 @@ function App() {
   const weatherInfo = getWeatherInfo(current.weather_code);
   const hourly = useMemo(() => parseHourly(weather), [weather]);
   const daily = useMemo(() => parseDaily(weather), [weather]);
-  const deviceState = getDeviceState(location);
+  // เดิม deviceState มาจาก getDeviceState(location) ตรงๆ — แต่ location คือ node "ที่มีพิกัด GPS"
+  // (เลือกมาจาก selectLocationFromNodes เพื่อดึงพยากรณ์อากาศ) ไม่ใช่ node ที่ผู้ใช้เลือกดูจริง
+  // ถ้า node ที่เลือก (เช่น NODE1 เซนเซอร์คุณภาพน้ำ) ไม่มี lat/lon เลย badge บน navbar จะไปโชว์
+  // สถานะของ node อื่นแทน ทำให้ตัว node ที่กำลังดูอยู่จริงออนไลน์แต่ navbar ขึ้น Offline
+  const selectedDevice = useMemo(() => {
+    if (selectedNodeId && devices.length) {
+      const found = devices.find((n) => getNodeId(n) === selectedNodeId);
+      if (found) return found;
+    }
+    return location;
+  }, [devices, location, selectedNodeId]);
+  const deviceState = getDeviceState(selectedDevice);
   const recommendations = useMemo(() => buildAdvisorText(location, weather), [location, weather]);
 
   const runAdvisor = async (mode) => {
