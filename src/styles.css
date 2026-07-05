@@ -4446,23 +4446,91 @@ button:disabled {
   padding: 0;
 }
 .sensor-hero-info-btn:hover { background: rgba(0,0,0,0.09); color: #666; }
-.sensor-hero-explain {
-  margin-top: 8px;
-  padding-top: 8px;
-  border-top: 1px dashed rgba(0,0,0,0.1);
+
+/* Popover ลอยอิสระ (fixed) แทนการขยายในการ์ด — ไม่ดันความสูงการ์ดข้างเคียง */
+.sensor-info-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  background: transparent;
 }
-.sensor-hero-explain p {
-  margin: 0 0 4px;
-  font-size: 0.78rem;
-  line-height: 1.4;
+.sensor-info-popover {
+  position: fixed;
+  z-index: 61;
+  width: 260px;
+  transform: translateX(-50%);
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 12px 32px rgba(0,0,0,0.18), 0 2px 8px rgba(0,0,0,0.08);
+  padding: 14px 16px 16px;
+  animation: sensorPopIn 0.14s ease-out;
+}
+.sensor-info-popover::before {
+  content: '';
+  position: absolute;
+  top: -6px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 12px;
+  height: 12px;
+  background: #fff;
+  border-radius: 2px 0 0 0;
+  box-shadow: -2px -2px 4px rgba(0,0,0,0.03);
+}
+@keyframes sensorPopIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(-4px); }
+  to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+.sensor-info-popover-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+.sensor-info-popover-head strong {
+  flex: 1;
+  font-size: 0.92rem;
+  color: #1a1a1a;
+}
+.sensor-info-popover-icon {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 9px;
+  flex-shrink: 0;
+}
+.sensor-info-popover-icon.success { background: #EAF5EC; color: #2F7A45; }
+.sensor-info-popover-icon.amber   { background: #FFF8E6; color: #b36200; }
+.sensor-info-popover-icon.danger  { background: #FEF0F0; color: #c62828; }
+.sensor-info-popover-icon.neutral { background: #F5F5F5; color: #999; }
+.sensor-info-popover-close {
+  border: none;
+  background: transparent;
+  color: #bbb;
+  cursor: pointer;
+  padding: 4px;
+  display: grid;
+  place-items: center;
+  border-radius: 6px;
+  flex-shrink: 0;
+}
+.sensor-info-popover-close:hover { background: rgba(0,0,0,0.06); color: #666; }
+.sensor-info-popover p {
+  margin: 0 0 10px;
+  font-size: 0.82rem;
+  line-height: 1.5;
   color: #555;
   font-weight: 400;
 }
-.sensor-hero-explain-range {
-  display: block;
-  font-size: 0.72rem;
+.sensor-info-popover-range {
+  display: inline-block;
+  font-size: 0.74rem;
   font-weight: 700;
-  color: #888;
+  color: #2F7A45;
+  background: #EAF5EC;
+  padding: 3px 9px;
+  border-radius: 8px;
 }
 
 .sensor-hero-empty {

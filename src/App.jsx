@@ -31,6 +31,7 @@ import {
   TrendingUp,
   Wifi,
   Wind,
+  X,
   Zap,
   Clock,
   AlertTriangle,
@@ -1296,7 +1297,18 @@ function SensorHeroRow({ node }) {
   const { lang } = useLang(); // eslint-disable-line no-unused-vars
   const rows = getSensorRows(node);
   // เกษตรกรแตะการ์ดเพื่อดูว่าค่านี้คืออะไร/ช่วงปกติเท่าไหร่ ไม่ต้องไปหน้า Guide แยก
-  const [expandedKey, setExpandedKey] = useState(null);
+  // เดิมโชว์แบบขยายในการ์ดเอง ทำให้การ์ดนั้นสูงกว่าเพื่อนจนแถวเพี้ยน เปลี่ยนเป็น popover ลอย
+  // (fixed position คำนวณจากปุ่มที่กด) แทน ไม่กระทบความสูงการ์ดเลย
+  const [openInfo, setOpenInfo] = useState(null); // { key, label, icon, tone, x, y, width }
+
+  // popover ใช้ fixed position ที่จับพิกัดตอนกดไว้ครั้งเดียว — ถ้า scroll หน้าแล้วการ์ดขยับ
+  // ตำแหน่ง popover จะไม่ตามไปด้วย ปิดทิ้งไปเลยง่ายกว่าไล่คำนวณตำแหน่งใหม่ทุกครั้งที่ scroll
+  useEffect(() => {
+    if (!openInfo) return;
+    const close = () => setOpenInfo(null);
+    window.addEventListener("scroll", close, true);
+    return () => window.removeEventListener("scroll", close, true);
+  }, [openInfo]);
 
   if (!rows.length) {
     return (
@@ -1306,6 +1318,19 @@ function SensorHeroRow({ node }) {
       </div>
     );
   }
+
+  const POPOVER_HALF_WIDTH = 130; // ต้องตรงกับ max-width/2 ของ .sensor-info-popover ใน CSS
+  const openPopover = (row, status, e) => {
+    if (openInfo?.key === row.key) { setOpenInfo(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    const rawX = rect.left + rect.width / 2;
+    // กันโป่งล้นขอบจอซ้าย/ขวา โดยเฉพาะการ์ดริมสุดบนมือถือ
+    const x = Math.min(Math.max(rawX, POPOVER_HALF_WIDTH + 12), window.innerWidth - POPOVER_HALF_WIDTH - 12);
+    setOpenInfo({ key: row.key, label: row.label, icon: row.icon, tone: status.tone, x, y: rect.bottom + 8 });
+  };
+
+  const openRow = rows.find((r) => r.key === openInfo?.key);
+  const openInfoContent = openRow ? sensorMeaning(openRow.key) : null;
 
   return (
     <div className="sensor-hero-row">
@@ -1319,13 +1344,12 @@ function SensorHeroRow({ node }) {
             ? v.toFixed(2)
             : v.toFixed(1);
         const info = sensorMeaning(row.key);
-        const isOpen = expandedKey === row.key;
         return (
           <article className={`sensor-hero-card ${status.tone}`} key={row.key}>
             {info && (
               <button
                 className="sensor-hero-info-btn"
-                onClick={() => setExpandedKey(isOpen ? null : row.key)}
+                onClick={(e) => openPopover(row, status, e)}
                 aria-label={t("mon.whatIsThis")}
                 type="button"
               >
@@ -1337,15 +1361,31 @@ function SensorHeroRow({ node }) {
             <strong className="sensor-hero-value">{displayVal}</strong>
             {row.unit && <span className="sensor-hero-unit">{row.unit}</span>}
             <span className={`sensor-hero-status ${status.tone}`}>{status.label}</span>
-            {info && isOpen && (
-              <div className="sensor-hero-explain">
-                <p>{info.meaning}</p>
-                <span className="sensor-hero-explain-range">{info.range}</span>
-              </div>
-            )}
           </article>
         );
       })}
+
+      {openInfo && openInfoContent && (
+        <>
+          <div className="sensor-info-backdrop" onClick={() => setOpenInfo(null)} />
+          <div
+            className={`sensor-info-popover ${openInfo.tone}`}
+            style={{ left: openInfo.x, top: openInfo.y }}
+          >
+            <div className="sensor-info-popover-head">
+              <span className={`sensor-info-popover-icon ${openInfo.tone}`}>
+                <openInfo.icon size={16} />
+              </span>
+              <strong>{openInfo.label}</strong>
+              <button className="sensor-info-popover-close" onClick={() => setOpenInfo(null)} aria-label={t("ui.close")} type="button">
+                <X size={14} />
+              </button>
+            </div>
+            <p>{openInfoContent.meaning}</p>
+            <span className="sensor-info-popover-range">{openInfoContent.range}</span>
+          </div>
+        </>
+      )}
     </div>
   );
 }
