@@ -1460,6 +1460,10 @@ function TrendChart({ color = "#2F7A45", data, digits = 1, unit = "" }) {
   );
 }
 
+function SortArrow({ active, dir }) {
+  return <span className={`sort-arrow ${active ? "active" : ""}`}>{active && dir === "asc" ? "↑" : active ? "↓" : "↕"}</span>;
+}
+
 function HistoryPage({ devices, location, navigate, selectedNodeId, setSelectedNodeId, settings }) {
   const { lang } = useLang(); // eslint-disable-line no-unused-vars
 
@@ -1468,10 +1472,27 @@ function HistoryPage({ devices, location, navigate, selectedNodeId, setSelectedN
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [sortKey, setSortKey] = useState("ts");
+  const [sortDir, setSortDir] = useState("desc");
 
   useEffect(() => {
     if (!historyNodeId && devices.length) setHistoryNodeId(getNodeId(devices[0]));
   }, [devices, historyNodeId]);
+
+  // สลับตู้แล้วคอลัมน์ที่เคยเรียงอาจไม่มีในตู้ใหม่ (เช่น ph ของ NODE1 vs GPS ของ DM01/02) รีเซ็ตกลับเป็นเวลาล่าสุดก่อน
+  useEffect(() => {
+    setSortKey("ts");
+    setSortDir("desc");
+  }, [historyNodeId]);
+
+  const toggleSort = (key) => {
+    if (sortKey === key) {
+      setSortDir((d) => (d === "asc" ? "desc" : "asc"));
+    } else {
+      setSortKey(key);
+      setSortDir("desc");
+    }
+  };
 
   const load = useCallback(async () => {
     if (!settings?.firebaseUrl || !historyNodeId) { setLoading(false); return; }
@@ -1524,11 +1545,24 @@ function HistoryPage({ devices, location, navigate, selectedNodeId, setSelectedN
     return series;
   }, [rows, activeColumns]);
 
+  // ตารางเรียงตามคอลัมน์ที่คลิก ส่วนกราฟ/สถิติยังใช้ rows ดิบ (เรียงตามเวลาเสมอ) แยกจากกัน
+  const sortedRows = useMemo(() => {
+    return [...rows].sort((a, b) => {
+      const av = a[sortKey], bv = b[sortKey];
+      if (av == null && bv == null) return 0;
+      if (av == null) return 1;
+      if (bv == null) return -1;
+      if (av < bv) return sortDir === "asc" ? -1 : 1;
+      if (av > bv) return sortDir === "asc" ? 1 : -1;
+      return 0;
+    });
+  }, [rows, sortKey, sortDir]);
+
   const exportCsv = () => {
-    if (!rows.length) return;
+    if (!sortedRows.length) return;
     const header = ["time", ...activeColumns.map((c) => (typeof c.label === "function" ? c.label() : c.label))];
     const lines = [header.join(",")];
-    rows.forEach((row) => {
+    sortedRows.forEach((row) => {
       const cells = [row.ts ? new Date(row.ts).toISOString() : ""];
       activeColumns.forEach((col) => cells.push(row[col.key] != null ? row[col.key] : ""));
       lines.push(cells.join(","));
@@ -1630,14 +1664,20 @@ function HistoryPage({ devices, location, navigate, selectedNodeId, setSelectedN
               <table className="history-table">
                 <thead>
                   <tr>
-                    <th>{t("hist.colTime")}</th>
+                    <th className="sortable-th" onClick={() => toggleSort("ts")}>
+                      {t("hist.colTime")}
+                      <SortArrow active={sortKey === "ts"} dir={sortDir} />
+                    </th>
                     {activeColumns.map((col) => (
-                      <th key={col.key}>{typeof col.label === "function" ? col.label() : col.label}</th>
+                      <th className="sortable-th" key={col.key} onClick={() => toggleSort(col.key)}>
+                        {typeof col.label === "function" ? col.label() : col.label}
+                        <SortArrow active={sortKey === col.key} dir={sortDir} />
+                      </th>
                     ))}
                   </tr>
                 </thead>
                 <tbody>
-                  {rows.map((row) => (
+                  {sortedRows.map((row) => (
                     <tr key={row.key}>
                       <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
                       {activeColumns.map((col) => (

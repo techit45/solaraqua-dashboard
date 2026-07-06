@@ -2374,6 +2374,19 @@ button:disabled {
   padding: 0 14px;
   border-bottom: 1px solid var(--line);
 }
+.history-table th.sortable-th {
+  cursor: pointer;
+  user-select: none;
+  white-space: nowrap;
+}
+.history-table th.sortable-th:hover { color: var(--text); background: #f3f5f1; }
+.sort-arrow {
+  display: inline-block;
+  margin-left: 4px;
+  font-size: 10px;
+  opacity: 0.45;
+}
+.sort-arrow.active { opacity: 1; color: var(--accent, #2F7A45); }
 .history-table td {
   height: 46px;
   padding: 0 14px;
