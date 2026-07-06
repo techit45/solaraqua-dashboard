@@ -46,6 +46,7 @@ import {
   PowerOff,
   Wrench,
   Info,
+  Download,
 } from "lucide-react";
 import { askGemini, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchNodeHistory, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
 import { demoDevices, demoOverview, demoWeather, fallbackLocation } from "./mockData.js";
@@ -69,6 +70,7 @@ const pages = [
   { id: "landing",  label: "Overview",  icon: Home },
   { id: "monitor",  label: "Monitor",   icon: Monitor },
   { id: "devices",  label: "Nodes",     icon: Router },
+  { id: "history",  label: "History",   icon: Clock },
   { id: "settings", label: "Settings",  icon: Settings },
   { id: "guide",    label: "Guide",     icon: BookOpen },
 ];
@@ -575,6 +577,7 @@ function App() {
         {activePage === "landing"  && <LandingPage {...pageProps} />}
         {activePage === "monitor"  && <MonitorPage {...pageProps} />}
         {activePage === "devices"  && <DevicesPage {...pageProps} />}
+        {activePage === "history"  && <HistoryPage {...pageProps} />}
         {activePage === "settings" && <SettingsPage {...pageProps} />}
         {activePage === "guide"    && <GuidePage navigate={pageProps.navigate} />}
       </AppShell>
@@ -653,6 +656,7 @@ const landingNavItems = [
 const appNavItems = [
   { id: "monitor",  labelKey: "nav.monitor",  icon: Monitor },
   { id: "devices",  labelKey: "nav.devices",  icon: Router },
+  { id: "history",  labelKey: "nav.history",  icon: Clock },
   { id: "settings", labelKey: "nav.settings", icon: Settings },
   { id: "guide",    labelKey: "nav.guide",    icon: BookOpen },
 ];
@@ -1392,101 +1396,262 @@ function SensorHeroRow({ node }) {
 
 // คอลัมน์ทั้งหมดที่ประวัติอาจมี — โชว์เฉพาะคอลัมน์ที่มีข้อมูลจริงอย่างน้อย 1 แถว กันตารางรกด้วย
 // คอลัมน์ที่ node ประเภทนั้นไม่มีเซนเซอร์เลย (เช่น NODE1 ไม่มี GPS, DM01/02 ไม่มี pH)
+// chartable: false กันคอลัมน์ที่กราฟเส้นไม่มีประโยชน์ (พิกัด GPS, ลำดับแพ็กเก็ต)
 const HISTORY_COLUMNS = [
-  { key: "ph",       label: "pH",                fmt: (v) => formatNumber(v, 2) },
-  { key: "ec_ms_cm", label: "EC (mS/cm)",        fmt: (v) => formatNumber(v, 2) },
-  { key: "do_mgl",   label: "DO (mg/L)",         fmt: (v) => formatNumber(v, 2) },
-  { key: "do_sat",   label: "DO Sat. (%)",       fmt: (v) => formatNumber(v * 100, 0) },
-  { key: "ntu",      label: () => `${t("sensor.ntu")} (NTU)`, fmt: (v) => formatNumber(v, 1) },
-  { key: "tds",      label: "TDS (ppm)",         fmt: (v) => formatInt(v) },
-  { key: "lat",      label: "Lat",               fmt: (v) => formatNumber(v, 6) },
-  { key: "lon",      label: "Lon",               fmt: (v) => formatNumber(v, 6) },
-  { key: "rssi",     label: "RSSI (dBm)",        fmt: (v) => formatInt(v) },
-  { key: "snr",      label: "SNR (dB)",          fmt: (v) => formatNumber(v, 1) },
+  { key: "ph",       label: "pH",                 unit: "",   digits: 2, color: "#2F7A45", fmt: (v) => formatNumber(v, 2) },
+  { key: "ec_ms_cm", label: "EC (mS/cm)",         unit: "",   digits: 2, color: "#1E88C7", fmt: (v) => formatNumber(v, 2) },
+  { key: "do_mgl",   label: "DO (mg/L)",          unit: "",   digits: 2, color: "#0EA5A5", fmt: (v) => formatNumber(v, 2) },
+  { key: "do_sat",   label: "DO Sat. (%)",        unit: "%",  digits: 0, color: "#22A559", fmt: (v) => formatNumber(v * 100, 0), chartValue: (v) => v * 100 },
+  { key: "ntu",      label: () => `${t("sensor.ntu")} (NTU)`, unit: "", digits: 1, color: "#C77E1E", fmt: (v) => formatNumber(v, 1) },
+  { key: "tds",      label: "TDS (ppm)",          unit: "",   digits: 0, color: "#8B5CF6", fmt: (v) => formatInt(v) },
+  { key: "rssi",     label: "RSSI (dBm)",         unit: "",   digits: 0, color: "#EF4444", fmt: (v) => formatInt(v) },
+  { key: "snr",      label: "SNR (dB)",           unit: "",   digits: 1, color: "#F59E0B", fmt: (v) => formatNumber(v, 1) },
+  { key: "lat",      label: "Lat",                unit: "",   digits: 6, color: "#64748B", chartable: false, fmt: (v) => formatNumber(v, 6) },
+  { key: "lon",      label: "Lon",                unit: "",   digits: 6, color: "#64748B", chartable: false, fmt: (v) => formatNumber(v, 6) },
 ];
-const HISTORY_LIMIT_OPTIONS = [30, 50, 100, 200];
+const HISTORY_LIMIT_OPTIONS = [50, 100, 200, 500, 1000];
 
-function NodeHistoryTable({ firebaseUrl, nodeId }) {
+// กราฟเส้นทั่วไปสำหรับข้อมูลย้อนหลัง — รับค่าตัวเลขดิบมาเรนเดอร์เป็น SVG โดยไม่พึ่ง library กราฟ
+function TrendChart({ color = "#2F7A45", data, digits = 1, unit = "" }) {
+  if (!data || data.length < 2) return <div className="chart-empty">{t("ui.noData")}</div>;
+
+  const W = 320, H = 130;
+  const pL = 34, pR = 12, pT = 14, pB = 18;
+  const cW = W - pL - pR, cH = H - pT - pB;
+
+  const vals = data.map((d) => d.v);
+  const rawMin = Math.min(...vals), rawMax = Math.max(...vals);
+  const span = rawMax - rawMin || Math.abs(rawMax) * 0.1 || 1;
+  const yMin = rawMin - span * 0.15, yMax = rawMax + span * 0.15;
+  const ySpan = yMax - yMin || 1;
+
+  const px = (i) => pL + (i / (data.length - 1)) * cW;
+  const py = (v) => pT + cH - ((v - yMin) / ySpan) * cH;
+  const pts = data.map((d, i) => [px(i), py(d.v)]);
+
+  let linePath = `M${pts[0][0].toFixed(1)},${pts[0][1].toFixed(1)}`;
+  for (let i = 1; i < pts.length; i++) {
+    linePath += ` L${pts[i][0].toFixed(1)},${pts[i][1].toFixed(1)}`;
+  }
+  const floor = (pT + cH + 1).toFixed(1);
+  const areaPath = `${linePath} L${pts[pts.length - 1][0].toFixed(1)},${floor} L${pts[0][0].toFixed(1)},${floor}Z`;
+
+  const ticks = Array.from({ length: 3 }, (_, i) => {
+    const frac = i / 2;
+    return { y: (pT + cH - frac * cH).toFixed(1), label: (yMin + frac * ySpan).toFixed(digits) };
+  });
+
+  const last = pts[pts.length - 1];
+  const lastV = vals[vals.length - 1];
+
+  return (
+    <svg aria-hidden="true" className="trend-chart" preserveAspectRatio="none" viewBox={`0 0 ${W} ${H}`}>
+      {ticks.map((tick) => (
+        <g key={tick.y}>
+          <line x1={pL} y1={tick.y} x2={W - pR} y2={tick.y} stroke="rgba(0,0,0,0.06)" strokeWidth="1" strokeDasharray="3 3" />
+          <text x={pL - 5} y={tick.y} fill="#a0af9e" fontSize="8.5" textAnchor="end" dominantBaseline="middle">{tick.label}</text>
+        </g>
+      ))}
+      <path d={areaPath} fill={color} fillOpacity="0.12" />
+      <path d={linePath} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx={last[0].toFixed(1)} cy={last[1].toFixed(1)} r="3.5" fill={color} />
+      <text x={last[0].toFixed(1)} y={(last[1] - 8).toFixed(1)} fill={color} fontSize="10" fontWeight="800" textAnchor="middle">{lastV.toFixed(digits)}{unit}</text>
+    </svg>
+  );
+}
+
+function HistoryPage({ devices, location, navigate, selectedNodeId, setSelectedNodeId, settings }) {
   const { lang } = useLang(); // eslint-disable-line no-unused-vars
+
+  const [historyNodeId, setHistoryNodeId] = useState(selectedNodeId || getNodeId(location) || getNodeId(devices[0]) || "");
+  const [limit, setLimit] = useState(100);
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  const [limit, setLimit] = useState(50);
+
+  useEffect(() => {
+    if (!historyNodeId && devices.length) setHistoryNodeId(getNodeId(devices[0]));
+  }, [devices, historyNodeId]);
 
   const load = useCallback(async () => {
-    if (!firebaseUrl || !nodeId) { setLoading(false); return; }
+    if (!settings?.firebaseUrl || !historyNodeId) { setLoading(false); return; }
     setLoading(true);
     setError("");
     try {
-      const data = await fetchNodeHistory(firebaseUrl, nodeId, limit);
+      const data = await fetchNodeHistory(settings.firebaseUrl, historyNodeId, limit);
       setRows(data);
     } catch (err) {
       setError(err.message || t("err.loadFail"));
     } finally {
       setLoading(false);
     }
-  }, [firebaseUrl, nodeId, limit]);
+  }, [settings?.firebaseUrl, historyNodeId, limit]);
 
   useEffect(() => { load(); }, [load]);
 
   // เอาเฉพาะคอลัมน์ที่มีค่าจริงอย่างน้อย 1 แถว ไม่ต้องโชว์ pH ให้ตู้ DM01/02 ที่ไม่มีเซนเซอร์นี้
-  const activeColumns = HISTORY_COLUMNS.filter((col) => rows.some((r) => r[col.key] != null));
+  const activeColumns = useMemo(
+    () => HISTORY_COLUMNS.filter((col) => rows.some((r) => r[col.key] != null)),
+    [rows]
+  );
+
+  const columnStats = useMemo(() => {
+    const stats = {};
+    activeColumns.forEach((col) => {
+      const vals = rows.map((r) => r[col.key]).filter((v) => v != null);
+      if (!vals.length) return;
+      stats[col.key] = {
+        min: Math.min(...vals),
+        max: Math.max(...vals),
+        avg: vals.reduce((a, b) => a + b, 0) / vals.length,
+        latest: rows[0]?.[col.key],
+      };
+    });
+    return stats;
+  }, [rows, activeColumns]);
+
+  // เรียงย้อนกลับให้เก่า→ใหม่ (rows จาก API เรียงใหม่→เก่า) เพื่อวาดกราฟเส้นเวลาให้ถูกทิศ
+  const chartSeries = useMemo(() => {
+    const asc = [...rows].reverse();
+    const series = {};
+    activeColumns.forEach((col) => {
+      if (col.chartable === false) return;
+      const data = asc
+        .filter((r) => r[col.key] != null)
+        .map((r) => ({ v: col.chartValue ? col.chartValue(r[col.key]) : r[col.key] }));
+      if (data.length >= 2) series[col.key] = data;
+    });
+    return series;
+  }, [rows, activeColumns]);
+
+  const exportCsv = () => {
+    if (!rows.length) return;
+    const header = ["time", ...activeColumns.map((c) => (typeof c.label === "function" ? c.label() : c.label))];
+    const lines = [header.join(",")];
+    rows.forEach((row) => {
+      const cells = [row.ts ? new Date(row.ts).toISOString() : ""];
+      activeColumns.forEach((col) => cells.push(row[col.key] != null ? row[col.key] : ""));
+      lines.push(cells.join(","));
+    });
+    const blob = new Blob([lines.join("\n")], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `history_${historyNodeId}_${limit}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
 
   return (
-    <Panel className="history-panel">
-      <div className="history-panel-head">
-        <SectionHeading title={t("hist.title")} subtitle={t("hist.subtitle")} />
-        <div className="history-panel-actions">
-          <select
-            className="history-limit-select"
-            value={limit}
-            onChange={(e) => setLimit(Number(e.target.value))}
-          >
-            {HISTORY_LIMIT_OPTIONS.map((n) => (
-              <option key={n} value={n}>{t("hist.lastN").replace("{n}", n)}</option>
-            ))}
-          </select>
+    <div className="page page-history">
+      <PageHeader
+        action={
           <button className="secondary-action" onClick={load} type="button">
-            <RefreshCw size={15} />
+            <RefreshCw className={loading ? "spinning" : ""} size={17} />
             <span>{t("ui.refresh")}</span>
           </button>
-        </div>
+        }
+        subtitle={t("hist.subtitle")}
+        title={t("hist.title")}
+      />
+
+      <div className="history-controls-row">
+        <select
+          aria-label={t("mon.selectNode")}
+          className="node-select"
+          onChange={(e) => setHistoryNodeId(e.target.value)}
+          value={historyNodeId}
+        >
+          {devices.length ? devices.map((node) => (
+            <option key={getNodeId(node)} value={getNodeId(node)}>{getNodeName(node)}</option>
+          )) : (
+            <option value={historyNodeId}>{historyNodeId}</option>
+          )}
+        </select>
+        <select
+          className="history-limit-select"
+          onChange={(e) => setLimit(Number(e.target.value))}
+          value={limit}
+        >
+          {HISTORY_LIMIT_OPTIONS.map((n) => (
+            <option key={n} value={n}>{t("hist.lastN").replace("{n}", n)}</option>
+          ))}
+        </select>
+        <button className="secondary-action" disabled={!rows.length} onClick={exportCsv} type="button">
+          <Download size={15} />
+          <span>{t("hist.export")}</span>
+        </button>
       </div>
 
+      {error && (
+        <div className="notice warning">
+          <Bell size={18} /><span>{error}</span>
+        </div>
+      )}
+
       {loading ? (
-        <div className="history-empty">{t("ui.loading")}</div>
-      ) : error ? (
-        <div className="history-empty history-error">{error}</div>
+        <Panel><div className="history-empty">{t("ui.loading")}</div></Panel>
       ) : !rows.length ? (
-        <div className="history-empty">{t("hist.empty")}</div>
+        <Panel><div className="history-empty">{t("hist.empty")}</div></Panel>
       ) : (
         <>
           <div className="history-count">{t("hist.rowCount").replace("{n}", rows.length)}</div>
-          <div className="table-wrap">
-            <table className="history-table">
-              <thead>
-                <tr>
-                  <th>{t("hist.colTime")}</th>
-                  {activeColumns.map((col) => (
-                    <th key={col.key}>{typeof col.label === "function" ? col.label() : col.label}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {rows.map((row) => (
-                  <tr key={row.key}>
-                    <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
+
+          <div className="history-stats-grid">
+            {activeColumns.map((col) => {
+              const s = columnStats[col.key];
+              if (!s) return null;
+              const label = typeof col.label === "function" ? col.label() : col.label;
+              return (
+                <Panel className="history-stat-card" key={col.key}>
+                  <span className="history-stat-label">{label}</span>
+                  <span className="history-stat-value">{col.fmt(s.latest)}</span>
+                  <div className="history-stat-range">
+                    <span>{t("hist.min")} {col.fmt(s.min)}</span>
+                    <span>{t("hist.avg")} {col.fmt(s.avg)}</span>
+                    <span>{t("hist.max")} {col.fmt(s.max)}</span>
+                  </div>
+                </Panel>
+              );
+            })}
+          </div>
+
+          <div className="history-charts-grid">
+            {activeColumns.filter((col) => chartSeries[col.key]).map((col) => (
+              <Panel className="history-chart-card" key={col.key}>
+                <SectionHeading title={typeof col.label === "function" ? col.label() : col.label} />
+                <TrendChart color={col.color} data={chartSeries[col.key]} digits={col.digits} unit={col.unit} />
+              </Panel>
+            ))}
+          </div>
+
+          <Panel className="history-panel">
+            <div className="table-wrap">
+              <table className="history-table">
+                <thead>
+                  <tr>
+                    <th>{t("hist.colTime")}</th>
                     {activeColumns.map((col) => (
-                      <td key={col.key}>{row[col.key] != null ? col.fmt(row[col.key]) : "--"}</td>
+                      <th key={col.key}>{typeof col.label === "function" ? col.label() : col.label}</th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {rows.map((row) => (
+                    <tr key={row.key}>
+                      <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
+                      {activeColumns.map((col) => (
+                        <td key={col.key}>{row[col.key] != null ? col.fmt(row[col.key]) : "--"}</td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </Panel>
         </>
       )}
-    </Panel>
+    </div>
   );
 }
 
@@ -1694,6 +1859,7 @@ function MonitorPage(props) {
     hourly,
     loading,
     location,
+    navigate,
     recommendations,
     refreshData,
     runAdvisor,
@@ -1781,7 +1947,19 @@ function MonitorPage(props) {
       {/* Row 2: Sensor Values */}
       <SensorHeroRow node={nodeForDisplay} />
       <NodeMetaBar location={location} node={nodeForDisplay} />
-      <NodeHistoryTable firebaseUrl={settings?.firebaseUrl} nodeId={getNodeId(nodeForDisplay)} />
+      <div className="history-link-row">
+        <button
+          className="secondary-action"
+          onClick={() => {
+            setSelectedNodeId(getNodeId(nodeForDisplay));
+            navigate("history");
+          }}
+          type="button"
+        >
+          <Clock size={16} />
+          <span>{t("hist.viewFull")}</span>
+        </button>
+      </div>
 
       {/* Row 2.5: Node Control (NODE1 only) */}
       {getNodeId(nodeForDisplay) === "NODE1" && (

@@ -2281,19 +2281,14 @@ button:disabled {
   background: #f5fbf4;
 }
 
-.history-panel { margin-top: 16px; }
-.history-panel-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 4px;
-}
-.history-panel-actions {
+.history-link-row { margin: 4px 0 16px; }
+
+.history-controls-row {
   display: flex;
   align-items: center;
-  gap: 8px;
-  flex-shrink: 0;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 16px;
 }
 .history-limit-select {
   height: 36px;
@@ -2311,6 +2306,50 @@ button:disabled {
   font-size: 12.5px;
   font-weight: 700;
 }
+
+.history-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.history-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 16px;
+}
+.history-stat-label {
+  color: var(--muted);
+  font-size: 11.5px;
+  font-weight: 850;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+.history-stat-value {
+  color: var(--text);
+  font-size: 22px;
+  font-weight: 900;
+}
+.history-stat-range {
+  display: flex;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 700;
+  flex-wrap: wrap;
+}
+
+.history-charts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.history-chart-card { padding: 14px 16px; }
+.trend-chart { width: 100%; height: auto; display: block; }
+
+.history-panel { margin-top: 16px; }
 .history-empty {
   padding: 32px 16px;
   text-align: center;

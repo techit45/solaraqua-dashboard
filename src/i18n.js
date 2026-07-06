@@ -8,6 +8,7 @@ const TRANSLATIONS = {
     'nav.features':     'คุณสมบัติ',
     'nav.monitor':      'แดชบอร์ด',
     'nav.devices':      'ตู้ย่อย',
+    'nav.history':      'ประวัติ',
     'nav.settings':     'ตั้งค่า',
 
     // Sensor labels (only Thai-named ones; GPS/pH/EC/DO/TDS stay same)
@@ -128,6 +129,11 @@ const TRANSLATIONS = {
     'hist.colTime':    'เวลา',
     'hist.lastN':      '{n} รายการล่าสุด',
     'hist.rowCount':   'แสดง {n} รายการ',
+    'hist.viewFull':   'ดูประวัติทั้งหมด',
+    'hist.export':     'ดาวน์โหลด CSV',
+    'hist.min':        'ต่ำสุด',
+    'hist.avg':        'เฉลี่ย',
+    'hist.max':        'สูงสุด',
     'mon.aiTitle':     'AI วิเคราะห์วันนี้',
     'mon.aiSummary':   'สรุปสถานะแปลง —',
     'mon.aiFrom':      'วิเคราะห์จาก:',
@@ -376,6 +382,7 @@ const TRANSLATIONS = {
     'nav.features':     'Features',
     'nav.monitor':      'Dashboard',
     'nav.devices':      'Nodes',
+    'nav.history':      'History',
     'nav.settings':     'Settings',
 
     // Sensor labels
@@ -496,6 +503,11 @@ const TRANSLATIONS = {
     'hist.colTime':    'Time',
     'hist.lastN':      'Last {n} entries',
     'hist.rowCount':   'Showing {n} entries',
+    'hist.viewFull':   'View full history',
+    'hist.export':     'Download CSV',
+    'hist.min':        'Min',
+    'hist.avg':        'Avg',
+    'hist.max':        'Max',
     'mon.aiTitle':     'AI Analysis Today',
     'mon.aiSummary':   'Field Status —',
     'mon.aiFrom':      'Analyzed from:',
