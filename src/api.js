@@ -239,6 +239,8 @@ export async function fetchNodeHistory(dbUrl, nodeId, limit = 50) {
   const data = await res.json();
   if (!data) return [];
 
+  // เอาทุกฟิลด์ที่ gateway เขียนจริง (ดู gateway_receiver_ra02.ino) ไม่ใช่แค่ชุดย่อยเหมือนเดิม —
+  // รวมสัญญาณ LoRa (rssi/snr) และพิกัด GPS (DM01/DM02) ให้ตารางประวัติละเอียดขึ้น
   return Object.entries(data)
     .map(([key, entry]) => ({
       key,
@@ -249,6 +251,11 @@ export async function fetchNodeHistory(dbUrl, nodeId, limit = 50) {
       do_sat: entry.do_sat ?? null,
       ntu: entry.ntu ?? null,
       tds: entry.tds ?? null,
+      rssi: entry.rssi ?? null,
+      snr: entry.snr ?? null,
+      lat: entry.lat ?? null,
+      lon: entry.lon ?? null,
+      seq: entry.seq ?? null,
     }))
     .sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)); // ใหม่สุดขึ้นก่อน
 }

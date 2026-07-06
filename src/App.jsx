@@ -1390,36 +1390,67 @@ function SensorHeroRow({ node }) {
   );
 }
 
+// คอลัมน์ทั้งหมดที่ประวัติอาจมี — โชว์เฉพาะคอลัมน์ที่มีข้อมูลจริงอย่างน้อย 1 แถว กันตารางรกด้วย
+// คอลัมน์ที่ node ประเภทนั้นไม่มีเซนเซอร์เลย (เช่น NODE1 ไม่มี GPS, DM01/02 ไม่มี pH)
+const HISTORY_COLUMNS = [
+  { key: "ph",       label: "pH",                fmt: (v) => formatNumber(v, 2) },
+  { key: "ec_ms_cm", label: "EC (mS/cm)",        fmt: (v) => formatNumber(v, 2) },
+  { key: "do_mgl",   label: "DO (mg/L)",         fmt: (v) => formatNumber(v, 2) },
+  { key: "do_sat",   label: "DO Sat. (%)",       fmt: (v) => formatNumber(v * 100, 0) },
+  { key: "ntu",      label: () => `${t("sensor.ntu")} (NTU)`, fmt: (v) => formatNumber(v, 1) },
+  { key: "tds",      label: "TDS (ppm)",         fmt: (v) => formatInt(v) },
+  { key: "lat",      label: "Lat",               fmt: (v) => formatNumber(v, 6) },
+  { key: "lon",      label: "Lon",               fmt: (v) => formatNumber(v, 6) },
+  { key: "rssi",     label: "RSSI (dBm)",        fmt: (v) => formatInt(v) },
+  { key: "snr",      label: "SNR (dB)",          fmt: (v) => formatNumber(v, 1) },
+];
+const HISTORY_LIMIT_OPTIONS = [30, 50, 100, 200];
+
 function NodeHistoryTable({ firebaseUrl, nodeId }) {
   const { lang } = useLang(); // eslint-disable-line no-unused-vars
   const [rows, setRows] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [limit, setLimit] = useState(50);
 
   const load = useCallback(async () => {
     if (!firebaseUrl || !nodeId) { setLoading(false); return; }
     setLoading(true);
     setError("");
     try {
-      const data = await fetchNodeHistory(firebaseUrl, nodeId, 30);
+      const data = await fetchNodeHistory(firebaseUrl, nodeId, limit);
       setRows(data);
     } catch (err) {
       setError(err.message || t("err.loadFail"));
     } finally {
       setLoading(false);
     }
-  }, [firebaseUrl, nodeId]);
+  }, [firebaseUrl, nodeId, limit]);
 
   useEffect(() => { load(); }, [load]);
+
+  // เอาเฉพาะคอลัมน์ที่มีค่าจริงอย่างน้อย 1 แถว ไม่ต้องโชว์ pH ให้ตู้ DM01/02 ที่ไม่มีเซนเซอร์นี้
+  const activeColumns = HISTORY_COLUMNS.filter((col) => rows.some((r) => r[col.key] != null));
 
   return (
     <Panel className="history-panel">
       <div className="history-panel-head">
         <SectionHeading title={t("hist.title")} subtitle={t("hist.subtitle")} />
-        <button className="secondary-action" onClick={load} type="button">
-          <RefreshCw size={15} />
-          <span>{t("ui.refresh")}</span>
-        </button>
+        <div className="history-panel-actions">
+          <select
+            className="history-limit-select"
+            value={limit}
+            onChange={(e) => setLimit(Number(e.target.value))}
+          >
+            {HISTORY_LIMIT_OPTIONS.map((n) => (
+              <option key={n} value={n}>{t("hist.lastN").replace("{n}", n)}</option>
+            ))}
+          </select>
+          <button className="secondary-action" onClick={load} type="button">
+            <RefreshCw size={15} />
+            <span>{t("ui.refresh")}</span>
+          </button>
+        </div>
       </div>
 
       {loading ? (
@@ -1429,32 +1460,31 @@ function NodeHistoryTable({ firebaseUrl, nodeId }) {
       ) : !rows.length ? (
         <div className="history-empty">{t("hist.empty")}</div>
       ) : (
-        <div className="table-wrap">
-          <table className="history-table">
-            <thead>
-              <tr>
-                <th>{t("hist.colTime")}</th>
-                <th>pH</th>
-                <th>EC (mS/cm)</th>
-                <th>DO (mg/L)</th>
-                <th>{t("sensor.ntu")} (NTU)</th>
-                <th>TDS (ppm)</th>
-              </tr>
-            </thead>
-            <tbody>
-              {rows.map((row) => (
-                <tr key={row.key}>
-                  <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
-                  <td>{formatNumber(row.ph, 2)}</td>
-                  <td>{formatNumber(row.ec_ms_cm, 2)}</td>
-                  <td>{formatNumber(row.do_mgl, 2)}</td>
-                  <td>{formatNumber(row.ntu, 1)}</td>
-                  <td>{row.tds != null ? formatInt(row.tds) : "--"}</td>
+        <>
+          <div className="history-count">{t("hist.rowCount").replace("{n}", rows.length)}</div>
+          <div className="table-wrap">
+            <table className="history-table">
+              <thead>
+                <tr>
+                  <th>{t("hist.colTime")}</th>
+                  {activeColumns.map((col) => (
+                    <th key={col.key}>{typeof col.label === "function" ? col.label() : col.label}</th>
+                  ))}
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.key}>
+                    <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
+                    {activeColumns.map((col) => (
+                      <td key={col.key}>{row[col.key] != null ? col.fmt(row[col.key]) : "--"}</td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </>
       )}
     </Panel>
   );
