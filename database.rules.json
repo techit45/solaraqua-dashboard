@@ -4,6 +4,10 @@
       ".read": true,
       ".write": "auth != null"
     },
+    "history": {
+      ".read": true,
+      ".write": "auth != null"
+    },
     "cmds": {
       "$nodeId": {
         ".read": true,

@@ -228,6 +228,31 @@ export async function fetchFromFirebase(dbUrl) {
   };
 }
 
+// ================= History (per-node time-series) =================
+// gateway เขียนเข้า /history/{nodeId} ทุก 5 นาที/ตู้ (ดู gateway_receiver_ra02.ino) โดยใช้ Firebase
+// push key ที่เรียงตามเวลาให้อัตโนมัติ — ดึงมาแค่ N รายการล่าสุดพอ ไม่โหลดประวัติทั้งหมดทีเดียว
+export async function fetchNodeHistory(dbUrl, nodeId, limit = 50) {
+  const base = dbUrl.replace(/\/$/, "");
+  const query = `orderBy=${encodeURIComponent('"$key"')}&limitToLast=${limit}`;
+  const res = await fetch(`${base}/history/${nodeId}.json?${query}`);
+  if (!res.ok) throw new Error(`Firebase history ${res.status}`);
+  const data = await res.json();
+  if (!data) return [];
+
+  return Object.entries(data)
+    .map(([key, entry]) => ({
+      key,
+      ts: entry.ts ?? null,
+      ph: entry.ph ?? null,
+      ec_ms_cm: entry.ec_ms_cm ?? null,
+      do_mgl: entry.do_mgl ?? null,
+      do_sat: entry.do_sat ?? null,
+      ntu: entry.ntu ?? null,
+      tds: entry.tds ?? null,
+    }))
+    .sort((a, b) => (b.ts ?? 0) - (a.ts ?? 0)); // ใหม่สุดขึ้นก่อน
+}
+
 // ================= NODE Control (cmds/NODE1) =================
 const DEFAULT_CTRL = { machineOn: false, pump1: false, pump2: false, autoPhMode: false, phMin: 6.5, phMax: 7.5 };
 

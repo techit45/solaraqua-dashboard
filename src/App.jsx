@@ -47,7 +47,7 @@ import {
   Wrench,
   Info,
 } from "lucide-react";
-import { askGemini, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
+import { askGemini, fetchDevices, fetchFromFirebase, fetchLatestLocation, fetchNodeControl, fetchNodeHistory, fetchOverview, fetchWeather, getDefaultBackendUrl, getEnsoData, writeNodeControl } from "./api.js";
 import { demoDevices, demoOverview, demoWeather, fallbackLocation } from "./mockData.js";
 import { t, setLang, getCurrentLang, ensoLabel, ensoImpacts, ensoOutlook } from "./i18n.js";
 
@@ -1390,6 +1390,76 @@ function SensorHeroRow({ node }) {
   );
 }
 
+function NodeHistoryTable({ firebaseUrl, nodeId }) {
+  const { lang } = useLang(); // eslint-disable-line no-unused-vars
+  const [rows, setRows] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  const load = useCallback(async () => {
+    if (!firebaseUrl || !nodeId) { setLoading(false); return; }
+    setLoading(true);
+    setError("");
+    try {
+      const data = await fetchNodeHistory(firebaseUrl, nodeId, 30);
+      setRows(data);
+    } catch (err) {
+      setError(err.message || t("err.loadFail"));
+    } finally {
+      setLoading(false);
+    }
+  }, [firebaseUrl, nodeId]);
+
+  useEffect(() => { load(); }, [load]);
+
+  return (
+    <Panel className="history-panel">
+      <div className="history-panel-head">
+        <SectionHeading title={t("hist.title")} subtitle={t("hist.subtitle")} />
+        <button className="secondary-action" onClick={load} type="button">
+          <RefreshCw size={15} />
+          <span>{t("ui.refresh")}</span>
+        </button>
+      </div>
+
+      {loading ? (
+        <div className="history-empty">{t("ui.loading")}</div>
+      ) : error ? (
+        <div className="history-empty history-error">{error}</div>
+      ) : !rows.length ? (
+        <div className="history-empty">{t("hist.empty")}</div>
+      ) : (
+        <div className="table-wrap">
+          <table className="history-table">
+            <thead>
+              <tr>
+                <th>{t("hist.colTime")}</th>
+                <th>pH</th>
+                <th>EC (mS/cm)</th>
+                <th>DO (mg/L)</th>
+                <th>{t("sensor.ntu")} (NTU)</th>
+                <th>TDS (ppm)</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.map((row) => (
+                <tr key={row.key}>
+                  <td>{row.ts ? formatTime(new Date(row.ts).toISOString()) : "--"}</td>
+                  <td>{formatNumber(row.ph, 2)}</td>
+                  <td>{formatNumber(row.ec_ms_cm, 2)}</td>
+                  <td>{formatNumber(row.do_mgl, 2)}</td>
+                  <td>{formatNumber(row.ntu, 1)}</td>
+                  <td>{row.tds != null ? formatInt(row.tds) : "--"}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </Panel>
+  );
+}
+
 function NodeMetaBar({ node, location }) {
   return (
     <div className="node-meta-bar">
@@ -1681,6 +1751,7 @@ function MonitorPage(props) {
       {/* Row 2: Sensor Values */}
       <SensorHeroRow node={nodeForDisplay} />
       <NodeMetaBar location={location} node={nodeForDisplay} />
+      <NodeHistoryTable firebaseUrl={settings?.firebaseUrl} nodeId={getNodeId(nodeForDisplay)} />
 
       {/* Row 2.5: Node Control (NODE1 only) */}
       {getNodeId(nodeForDisplay) === "NODE1" && (
